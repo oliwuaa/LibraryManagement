@@ -1,0 +1,31 @@
+package com.example.library.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Entity
+@Table(name = "copies")
+public class Copy {
+    @Id
+    @GeneratedValue(
+            strategy = GenerationType.IDENTITY
+    )
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "book_id", nullable = false)
+    private Book bookId;
+
+    @ManyToOne
+    @JoinColumn(name = "library_id", nullable = false)
+    private Library libraryId;
+
+    @Enumerated(EnumType.STRING)
+    private CopyStatus status;
+
+}
