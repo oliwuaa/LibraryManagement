@@ -71,4 +71,3 @@
 - **Zarządzanie konfiguracją systemu:**
   - Zmienne środowiskowe `.env`, pliki `application.yml`
   - Obsługa daty i czasu: `java.time.Clock`
-  - Konfiguracja stref czasowych w `application.yml`
