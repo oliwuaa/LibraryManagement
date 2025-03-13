@@ -25,7 +25,7 @@
 
 - **Zarządzanie książkami:**
   - Dodawanie, edycja, usuwanie książek (encja `Book`)
-  - Przypisywanie kategorii, autorów, wydania
+  - Przypisywanie autorów, roku wydania, liczby stron
 
 - **Obsługa wypożyczeń i rezerwacji:**
   - Wypożyczanie książek użytkownikom
