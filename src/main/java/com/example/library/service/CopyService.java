@@ -27,6 +27,10 @@ public class CopyService {
         return copyRepository.findAll();
     }
 
+    public List<Copy> getActiveCopies() {
+        return copyRepository.findByStatusIn(List.of(CopyStatus.AVAILABLE, CopyStatus.BORROWED));
+    }
+
     public Copy getCopyById(Long copyId) {
         return copyRepository.findById(copyId).orElseThrow(() -> new IllegalStateException("Copy with ID " + copyId + " does not exist"));
     }
@@ -36,7 +40,7 @@ public class CopyService {
     }
 
     public List<Copy> getAvailableCopiesByLibrary(Long libraryId) {
-        return copyRepository.findCopyByLibraryIdandStatus(libraryId, CopyStatus.AVAILABLE);
+        return copyRepository.findCopyByLibraryIdAndStatus(libraryId, CopyStatus.AVAILABLE);
     }
 
     public List<Copy> getCopiesByBook(Long bookId) {
@@ -58,8 +62,8 @@ public class CopyService {
                 .orElseThrow(() -> new IllegalAccessException("Library with ID " + libraryId + " does not exist"));
 
         Copy copy = Copy.builder()
-                .bookId(book)
-                .libraryId(library)
+                .book(book)
+                .library(library)
                 .status(CopyStatus.AVAILABLE)
                 .build();
         copyRepository.save(copy);
@@ -72,8 +76,7 @@ public class CopyService {
     }
 
     public void deleteCopy(Long copyId) throws IllegalAccessException {
-        if (copyRepository.existsById(copyId))
-            throw new IllegalAccessException("Copy with ID " + copyId + " does not exist");
-        copyRepository.deleteById(copyId);
+        Copy copy = copyRepository.findById(copyId).orElseThrow(() -> new IllegalStateException("Copy with ID " + copyId + " does not exist"));
+        copy.setStatus(CopyStatus.REMOVED);
     }
 }

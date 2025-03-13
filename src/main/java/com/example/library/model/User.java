@@ -30,6 +30,7 @@ public class User {
     @Column(nullable = false)
     private String surname;
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private UserRole role;
     @ManyToOne
     @JoinColumn(name = "library_id", nullable = true)

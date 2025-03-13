@@ -3,8 +3,6 @@ package com.example.library.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.List;
-
 @Getter
 @Setter
 @NoArgsConstructor
@@ -24,9 +22,5 @@ public class Book {
     private String author;
     @Column(unique = true, nullable = false)
     private String isbn;
-
-    //kaskadowe usuwanie kopi, jak usuniemy ksiazkę
-    @OneToMany(mappedBy = "bookId", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Copy> copies;
 
 }

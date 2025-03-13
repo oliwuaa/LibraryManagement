@@ -8,7 +8,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 import java.util.Objects;
@@ -28,7 +27,11 @@ public class LibraryService {
         return libraryRepository.findAll();
     }
 
-    public void addLibrary(@RequestBody Library newLibrary) throws IllegalAccessException {
+    public List<Library> getActiveLibraries() {
+        return libraryRepository.findByStatusIn(List.of(LibraryStatus.ACTIVE, LibraryStatus.CLOSED));
+    }
+
+    public void addLibrary(Library newLibrary) throws IllegalAccessException {
         if (libraryRepository.findLibraryByAddress(newLibrary.getAddress()).isPresent())
             throw new IllegalAccessException("This library has already exist");
         libraryRepository.save(newLibrary);
@@ -53,7 +56,12 @@ public class LibraryService {
         Library library = libraryRepository.findById(libraryId)
                 .orElseThrow(() -> new RuntimeException("Library with ID " + libraryId + " doesn't exist."));
 
-        copyRepository.deleteAll(library.getStock());
+        List<Copy> copies = library.getStock();
+        for (Copy copy : copies) {
+            copy.setStatus(CopyStatus.REMOVED);
+            copyRepository.save(copy);
+        }
+
         List<User> librarians = library.getUsers();
         for (User user : librarians) {
             if (user.getRole() == UserRole.LIBRARIAN) {
@@ -62,7 +70,8 @@ public class LibraryService {
             user.setLibrary(null);
             userRepository.save(user);
         }
-        libraryRepository.deleteById(libraryId);
+        library.setStatus(LibraryStatus.CLOSED);
+        libraryRepository.save(library);
     }
 
     @Transactional

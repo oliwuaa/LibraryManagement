@@ -19,13 +19,14 @@ public class Copy {
 
     @ManyToOne
     @JoinColumn(name = "book_id", nullable = false)
-    private Book bookId;
+    private Book book;
 
     @ManyToOne
     @JoinColumn(name = "library_id", nullable = false)
-    private Library libraryId;
+    private Library library;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private CopyStatus status;
 
 }

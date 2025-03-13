@@ -21,11 +21,11 @@ public class Loan {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private User userId;
+    private User user;
 
     @ManyToOne
     @JoinColumn(name = "copy_id", nullable = false)
-    private Copy copyId;
+    private Copy copy;
 
     @Column(nullable = false)
     private LocalDate startDate;
@@ -33,7 +33,7 @@ public class Loan {
     @Column(nullable = false)
     private LocalDate endDate;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private LocalDate returnDate;
 
 }

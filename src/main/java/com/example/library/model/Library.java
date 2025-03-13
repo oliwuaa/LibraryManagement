@@ -28,15 +28,14 @@ public class Library {
     @Column(nullable = false)
     private String address;
 
-    @OneToMany(mappedBy = "library", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "library",  fetch = FetchType.LAZY)
     private List<Copy> stock = new ArrayList<>();
 
-    @OneToMany(mappedBy = "library", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "library",  fetch = FetchType.LAZY)
     private List<User> users = new ArrayList<>();
 
-    public List<User> getUsers() {
-        return users;
-    }
-
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private LibraryStatus status;
 
 }
