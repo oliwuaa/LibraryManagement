@@ -1,73 +1,90 @@
-#  Roles and Permissions – Library Application
+# Roles and Permissions – Library Application
+
+---
 
 ## Rola: USER (Czytelnik)
 
-- **Katalog i rezerwacje:**
-  - Przeglądanie dostępnych książek
-  - Rezerwowanie książek
-  - Podgląd statusu rezerwacji
+### Katalog i rezerwacje
+- Przeglądanie dostępnych książek (`GET /books`, `GET /books/{bookId}`, `GET /books/search`)
+- Wyszukiwanie książek po tytule, autorze, ISBN, gatunku (`GET /books/search`)
+- Przeglądanie dostępnych kopii książek (`GET /copies/available`)
+- Rezerwacja książki (`POST /reservations`)
+- Podgląd statusu własnych rezerwacji (`GET /reservations/user/{userId}`)
+- Anulowanie własnych rezerwacji (`DELETE /reservations/{reservationId}`)
 
-- **Zarządzanie wypożyczeniami:**
-  - Wypożyczanie książek (automatycznie lub przez zatwierdzenie przez bibliotekarza)
-  - Przedłużanie wypożyczeń (jeśli dostępne)
-  - Podgląd historii wypożyczeń
+### Zarządzanie wypożyczeniami
+- Podgląd historii własnych wypożyczeń (`GET /users/{userId}/loans`)
+- Przedłużanie wypożyczenia (`POST /loans/{loanId}/extend`)
+- Możliwość wypożyczenia (`POST /loans`)
 
-- **Zarządzanie kontem:**
-  - Rejestracja konta
-  - Edycja danych konta (e-mail, hasło)
-  - Dezaktywacja konta
+### Zarządzanie kontem
+- Rejestracja konta (`POST /auth/register`)
+- Logowanie (`POST /auth/login`)
+- Weryfikacja konta (`GET /auth/verify-email`)
+- Edycja własnych danych (`PUT /users/{userId}`)
 
-- **Powiadomienia:**
-  - Informacje o zbliżającym się terminie zwrotu
-  - Powiadomienie o dostępności zarezerwowanych pozycji
+### Powiadomienia (funkcjonalność systemowa)
+- Informacje o zbliżającym się terminie zwrotu
+
+---
 
 ## Rola: LIBRARIAN (Bibliotekarz)
 
-- **Zarządzanie książkami:**
-  - Dodawanie, edycja, usuwanie książek (encja `Book`)
-  - Przypisywanie autorów, roku wydania, liczby stron
+### Zarządzanie książkami
+- Dodawanie książek (`POST /books`)
+- Edycja danych książek (`PUT /books/{bookId}`)
+- Usuwanie książek (`DELETE /books/{bookId}`)
+- Przypisywanie autorów, ISBN, liczby stron, roku wydania
 
-- **Obsługa wypożyczeń i rezerwacji:**
-  - Wypożyczanie książek użytkownikom
-  - Przedłużanie terminów wypożyczenia
-  - Zmiana statusu rezerwacji
+### Zarządzanie kopiami książek
+- Dodawanie kopii książek (`POST /copies`)
+- Edycja statusu kopii książki (`PUT /copies/{copyId}`)
+- Usuwanie kopii książek (`DELETE /copies/{copyId}`)
+- Przegląd wszystkich kopii (`GET /copies`)
+- Sprawdzanie dostępności egzemplarzy (`GET /copies/available`)
+- 
+### Obsługa wypożyczeń i rezerwacji
+- Wypożyczanie książek (`POST /loans`)
+- Przedłużanie wypożyczeń (`POST /loans/{loanId}/extend`)
+- Zwroty książek (`POST /loans/{loanId}/return`)
+- Przegląd wypożyczeń wszystkich użytkowników (`GET /loans`)
+- Przegląd rezerwacji (`GET /reservations`)
 
-- **Zarządzanie dostępnością książek:**
-  - Sprawdzanie aktualnego statusu książek
-  - Zgłaszanie uszkodzonych lub zaginionych egzemplarzy
+### Komunikacja z użytkownikami
+- Powiadamianie o terminie zwrotu
 
-- **Komunikacja z użytkownikami:**
-  - Przypomnienie o terminie zwrotu
+---
 
-## Rola: ADMIN (Administrator systemu)
+##  Rola: ADMIN (Administrator systemu)
 
-- **Wszystkie funkcje LIBRARIAN +**
+> Posiada wszystkie uprawnienia LIBRARIAN oraz dodatkowe funkcje administracyjne.
 
-- **Pełny przegląd i zarządzanie danymi:**
-  - Historia wypożyczeń użytkowników (`BorrowHistory`)
-  - Lista wszystkich użytkowników, ich role, aktywność w systemie
-  - Dostęp do globalnej konfiguracji aplikacji (`application.yml`, `.env`)
-    
-- **Zarządzanie kontami:**
-  - Dodaj, usuń i edytuj konto
-  - Zmiana roli konta
-  - Reset hasła
+### Pełny przegląd danych i konfiguracji systemu
+- Historia wypożyczeń wszystkich użytkowników (`GET /loans`)
+- Przegląd użytkowników (`GET /users`, `GET /users/{id}`, `GET /users/search`)
+- Przegląd bibliotek i danych o bibliotekarzach (`GET /libraries`, `GET /users/library/{libraryId}/librarians`)
+- Konfiguracja aplikacji: zmienne środowiskowe `.env`, `application.yml`
 
-- **Dostęp do panelu administracyjnego:**
-  - Spring Boot Admin – monitoring statusu aplikacji, uptime, health checks
+### Zarządzanie kontami użytkowników
+- Dodawanie użytkowników (`POST /users`)
+- Edycja danych użytkowników (`PUT /users/{userId}`)
+- Usuwanie kont (`DELETE /users/{userId}`)
+- Zmiana roli (`POST /users/role/{role}`)
 
-- **Logi systemowe i monitoring:**
-  - Logi aplikacji: Spring Boot + Logback
-  - Monitoring metryk: Spring Boot Actuator (`/actuator/metrics`, `/actuator/health`)
+### Panel administracyjny i monitoring
+- **Spring Boot Admin** – monitorowanie aplikacji (uptime, health, endpoints)
+- **Spring Boot Actuator** – `/actuator/metrics`, `/actuator/health`
+- **Logi systemowe:** logback (lokalnie), integracja z ELK (Elasticsearch, Logstash, Kibana)
 
-- **Testy i wgląd w wyniki:**
-  - Testy jednostkowe: JUnit 5
-  - Raporty: Surefire Reports
-  - CI/CD: GitHub Actions lub GitLab CI
+### Testowanie i CI/CD
+- Testy jednostkowe: **JUnit 5**
+- Raporty testowe: **Surefire Reports**
+- Automatyczne testowanie w CI (GitHub Actions / GitLab CI)
 
-- **Testy wydajnościowe:**
-  - Gatling – uruchamiane lokalnie, raporty w `/gatling-results`
+### Integracje
+- Integracja z zewnętrznymi API (np. `/external/books`)
+- Zarządzanie dostępem do kluczy API (w `.env`, `application.yml`)
+- Monitorowanie działania integracji (np. poprzez dedykowane endpointy `/admin/integrations`)
 
-- **Zarządzanie konfiguracją systemu:**
-  - Zmienne środowiskowe `.env`, pliki `application.yml`
-  - Obsługa daty i czasu: `java.time.Clock`
+###  Obsługa daty i czasu
+- Implementacja przez `java.time.Clock`
