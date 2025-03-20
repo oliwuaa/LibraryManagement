@@ -3,7 +3,7 @@ package com.example.library.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -11,12 +11,10 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name="loans")
-public class Loan {
+@Table(name = "reservations")
+public class Reservation {
     @Id
-    @GeneratedValue(
-            strategy = GenerationType.IDENTITY
-    )
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
@@ -28,12 +26,11 @@ public class Loan {
     private Copy copy;
 
     @Column(nullable = false)
-    private LocalDate startDate;
+    private LocalDateTime createdAt;
 
     @Column(nullable = false)
-    private LocalDate endDate;
+    private LocalDateTime expirationDate;
 
-    @Column
-    private LocalDate returnDate;
-
+    @Enumerated(EnumType.STRING)
+    private ReservationStatus status;
 }

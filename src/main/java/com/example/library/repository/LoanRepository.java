@@ -7,10 +7,6 @@ import java.util.Optional;
 
 public interface LoanRepository extends JpaRepository<Loan, Long> {
     List<Loan> findByUserId(Long userId);
-
-    List<Loan> findByUserIdAndReturnDateIsNullL(Long userId);
-
-    Optional<Loan> findByUserAndCopyAndReturnDateIsNull(Long userId, Long copyId);
-
-
+    List<Loan> findByUserIdAndReturnDateIsNull(Long userId);
+    Optional<Loan> findByUserIdAndCopyIdAndReturnDateIsNull(Long userId, Long copyId);
 }

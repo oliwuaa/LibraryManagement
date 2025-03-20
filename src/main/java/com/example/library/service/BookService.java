@@ -1,22 +1,21 @@
 package com.example.library.service;
 
+import com.example.library.specification.BookSpecification;
 import com.example.library.model.Book;
 import com.example.library.repository.BookRepository;
 import com.example.library.repository.CopyRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
 public class BookService {
-    @Autowired
     private final BookRepository bookRepository;
-    @Autowired
     private final CopyRepository copyRepository;
 
     public List<Book> getAllBooks() {
@@ -28,43 +27,57 @@ public class BookService {
     }
 
     public Book getBookByISBN(String isbn) {
-        return bookRepository.findBookByIsbn(isbn).orElseThrow(() -> new IllegalStateException("Book with ISBN" + isbn + " does not exist"));
+        return bookRepository.findByIsbn(isbn).orElseThrow(() -> new IllegalStateException("Book with ISBN" + isbn + " does not exist"));
+    }
+
+    public List<Book> getBooksByAuthor(String author) throws IllegalStateException {
+        if (!bookRepository.existsByAuthor(author))
+            throw new IllegalStateException("There are no books written by this author");
+
+        return bookRepository.findByAuthor(author);
+    }
+
+    public List<Book> getBooksByParams(String title, String author, String isbn) {
+        Specification<Book> specification = Specification.where(BookSpecification.hasTitle(title))
+                .and(BookSpecification.hasAuthor(author))
+                .and(BookSpecification.hasIsbn(isbn));
+
+        return bookRepository.findAll(specification);
     }
 
     public void addBook(Book newBook) throws IllegalAccessException {
-        if (bookRepository.existsBookByIsbn(newBook.getIsbn()))
-            throw new IllegalAccessException("This book has already been added");
+        if (bookRepository.existsByIsbn(newBook.getIsbn()))
+            throw new IllegalStateException("This book has already been added");
         bookRepository.save(newBook);
     }
 
-    public void deleteBook(Book book) throws IllegalAccessException {
-        if (!bookRepository.existsBookByIsbn(book.getIsbn()))
-            throw new IllegalAccessException("Book with this ISBN hasn't been found.");
-        if(copyRepository.existsByBook(book))
-            throw new IllegalAccessException("Cannot delete book because there are existing copies.");
+    //TO THINK ABOUT
+    public void deleteBook(Long bookId) throws IllegalStateException {
+        Book book = bookRepository.findById(bookId).orElseThrow(() -> new IllegalStateException("Book with ID " + bookId + " does not exist"));
+        if (copyRepository.existsByBook(book))
+            throw new IllegalStateException("Cannot delete book because there are existing copies.");
         bookRepository.delete(book);
     }
 
     @Transactional
-    public void updateBook(Long bookId, String title, String author, String isbn) throws IllegalAccessException {
-        Book changedBook = bookRepository.findById(bookId).orElseThrow(() -> new IllegalStateException("Book with ID " + bookId + " does not exist"));
+    public void updateBook(Long bookId, String title, String author, String isbn) {
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new EntityNotFoundException("Book with ID " + bookId + " does not exist"));
 
-        if (title != null && !title.isBlank() && !Objects.equals(changedBook.getTitle(), title)) {
-            changedBook.setTitle(title);
+        if (title != null && !title.isBlank()) {
+            book.setTitle(title);
         }
 
-        if (author != null && !author.isBlank() && !Objects.equals(changedBook.getAuthor(), author)) {
-            changedBook.setAuthor(author);
+        if (author != null && !author.isBlank()) {
+            book.setAuthor(author);
         }
 
-        if (isbn != null && !isbn.isBlank() && !Objects.equals(changedBook.getIsbn(), isbn)) {
-            if (bookRepository.existsBookByIsbn(isbn))
-                throw new IllegalAccessException("Book with this ISBN has already exist!");
-            changedBook.setIsbn(isbn);
+        if (isbn != null && !isbn.isBlank() && !bookRepository.existsByIsbn(isbn)) {
+            book.setIsbn(isbn);
+        } else {
+            throw new IllegalStateException("Book with this ISBN already exists!");
         }
-
-        bookRepository.save(changedBook);
-
     }
+
 
 }

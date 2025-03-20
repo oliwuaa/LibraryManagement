@@ -7,8 +7,9 @@ import com.example.library.model.Library;
 import com.example.library.repository.BookRepository;
 import com.example.library.repository.CopyRepository;
 import com.example.library.repository.LibraryRepository;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,11 +17,9 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class CopyService {
-    @Autowired
+
     private final CopyRepository copyRepository;
-    @Autowired
     private final LibraryRepository libraryRepository;
-    @Autowired
     private final BookRepository bookRepository;
 
     public List<Copy> getAllCopies() {
@@ -40,7 +39,7 @@ public class CopyService {
     }
 
     public List<Copy> getAvailableCopiesByLibrary(Long libraryId) {
-        return copyRepository.findCopyByLibraryIdAndStatus(libraryId, CopyStatus.AVAILABLE);
+        return copyRepository.findByLibraryIdAndStatus(libraryId, CopyStatus.AVAILABLE);
     }
 
     public List<Copy> getCopiesByBook(Long bookId) {
@@ -48,18 +47,19 @@ public class CopyService {
     }
 
     public List<Copy> getAvailableCopiesByBook(Long bookId) {
-        return copyRepository.findCopyByBookIdAndStatus(bookId, CopyStatus.AVAILABLE);
+        return copyRepository.findByBookIdAndStatus(bookId, CopyStatus.AVAILABLE);
     }
 
     public List<Copy> getAvailableCopies() {
-        return copyRepository.findCopyByStatus(CopyStatus.AVAILABLE);
+        return copyRepository.findByStatus(CopyStatus.AVAILABLE);
     }
 
+    @Transactional
     public void addCopy(Long bookId, Long libraryId) throws IllegalAccessException {
         Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new IllegalAccessException("Book with ID " + bookId + " does not exist"));
+                .orElseThrow(() -> new EntityNotFoundException("Book with ID " + bookId + " does not exist"));
         Library library = libraryRepository.findById(libraryId)
-                .orElseThrow(() -> new IllegalAccessException("Library with ID " + libraryId + " does not exist"));
+                .orElseThrow(() -> new EntityNotFoundException("Library with ID " + libraryId + " does not exist"));
 
         Copy copy = Copy.builder()
                 .book(book)
@@ -75,7 +75,7 @@ public class CopyService {
         copy.setStatus(status);
     }
 
-    public void deleteCopy(Long copyId) throws IllegalAccessException {
+    public void deleteCopy(Long copyId) {
         Copy copy = copyRepository.findById(copyId).orElseThrow(() -> new IllegalStateException("Copy with ID " + copyId + " does not exist"));
         copy.setStatus(CopyStatus.REMOVED);
     }

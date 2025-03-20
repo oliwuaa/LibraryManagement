@@ -19,20 +19,18 @@ public class User {
     )
     private Long id;
 
-    @Column(unique = true, nullable = false)
-    private String username;
     @Column(nullable = false)
     private String password;
     @Column(unique = true, nullable = false)
     private String email;
-    @Column(nullable = false)
+    @Column
     private String name;
-    @Column(nullable = false)
+    @Column
     private String surname;
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserRole role;
     @ManyToOne
-    @JoinColumn(name = "library_id", nullable = true)
+    @JoinColumn(name = "library_id")
     private Library library;
 }

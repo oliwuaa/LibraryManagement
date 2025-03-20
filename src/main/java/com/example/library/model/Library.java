@@ -6,9 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Getter
 @Setter
 @NoArgsConstructor
@@ -27,12 +24,6 @@ public class Library {
 
     @Column(nullable = false)
     private String address;
-
-    @OneToMany(mappedBy = "library",  fetch = FetchType.LAZY)
-    private List<Copy> stock = new ArrayList<>();
-
-    @OneToMany(mappedBy = "library",  fetch = FetchType.LAZY)
-    private List<User> users = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

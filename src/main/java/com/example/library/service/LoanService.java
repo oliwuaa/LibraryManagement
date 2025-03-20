@@ -4,8 +4,8 @@ import com.example.library.model.*;
 import com.example.library.repository.CopyRepository;
 import com.example.library.repository.LoanRepository;
 import com.example.library.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -14,12 +14,13 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class LoanService {
-    @Autowired
+
     private final LoanRepository loanRepository;
-    @Autowired
+
     private final UserRepository userRepository;
-    @Autowired
+
     private final CopyRepository copyRepository;
+
 
 
     public List<Loan> getAllLoans() {
@@ -31,7 +32,7 @@ public class LoanService {
     }
 
     public List<Loan> getUserActiveLoans(Long userId) {
-        return loanRepository.findByUserIdAndReturnDateIsNullL(userId);
+        return loanRepository.findByUserIdAndReturnDateIsNull(userId);
     }
 
     public void borrowBook(Long userId, Long copyId) throws IllegalAccessException {
@@ -52,8 +53,9 @@ public class LoanService {
         loanRepository.save(loan);
     }
 
+    @Transactional
     public void returnBook(Long userId, Long copyId) {
-        Loan loan = loanRepository.findByUserAndCopyAndReturnDateIsNull(userId, copyId)
+        Loan loan = loanRepository.findByUserIdAndCopyIdAndReturnDateIsNull(userId, copyId)
                 .orElseThrow(() -> new IllegalStateException("This book has already been returned or loan doesn't exist"));
 
         loan.setReturnDate(LocalDate.now());
@@ -62,7 +64,7 @@ public class LoanService {
     }
 
     public void extendLoan(LocalDate date, Long userId, Long copyId) throws IllegalAccessException {
-        Loan loan = loanRepository.findByUserAndCopyAndReturnDateIsNull(userId, copyId)
+        Loan loan = loanRepository.findByUserIdAndCopyIdAndReturnDateIsNull(userId, copyId)
                 .orElseThrow(() -> new IllegalStateException("This loan doesn't exist"));
         if (date.isBefore(loan.getEndDate())) {
             throw new IllegalAccessException("The new date must be after endDate");

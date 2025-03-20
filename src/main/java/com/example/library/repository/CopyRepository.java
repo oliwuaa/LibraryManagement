@@ -12,9 +12,9 @@ import java.util.List;
 public interface CopyRepository extends JpaRepository<Copy, Long> {
     List<Copy> findByLibraryId(Long libraryId);
     List<Copy> findByBookId(Long bookId);
-    List<Copy> findCopyByBookIdAndStatus(Long bookId, CopyStatus status );
-    List<Copy> findCopyByLibraryIdAndStatus(Long libraryId, CopyStatus status );
-    List<Copy> findCopyByStatus(CopyStatus status);
+    List<Copy> findByBookIdAndStatus(Long bookId, CopyStatus status);
+    List<Copy> findByLibraryIdAndStatus(Long libraryId, CopyStatus status);
+    List<Copy> findByStatus(CopyStatus status);
     List<Copy> findByStatusIn(List<CopyStatus> statuses);
     boolean existsByBook(Book book);
 }
