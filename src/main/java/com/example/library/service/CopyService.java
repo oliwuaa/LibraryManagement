@@ -4,9 +4,7 @@ import com.example.library.model.Book;
 import com.example.library.model.Copy;
 import com.example.library.model.CopyStatus;
 import com.example.library.model.Library;
-import com.example.library.repository.BookRepository;
-import com.example.library.repository.CopyRepository;
-import com.example.library.repository.LibraryRepository;
+import com.example.library.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +19,8 @@ public class CopyService {
     private final CopyRepository copyRepository;
     private final LibraryRepository libraryRepository;
     private final BookRepository bookRepository;
+    private final LoanRepository loanRepository;
+    private final ReservationRepository reservationRepository;
 
     public List<Copy> getAllCopies() {
         return copyRepository.findAll();
@@ -73,10 +73,17 @@ public class CopyService {
     public void updateCopyStatus(Long copyId, CopyStatus status) {
         Copy copy = copyRepository.findById(copyId).orElseThrow(() -> new IllegalStateException("Copy with ID " + copyId + " does not exist"));
         copy.setStatus(status);
+        copyRepository.save(copy);
     }
 
     public void deleteCopy(Long copyId) {
         Copy copy = copyRepository.findById(copyId).orElseThrow(() -> new IllegalStateException("Copy with ID " + copyId + " does not exist"));
-        copy.setStatus(CopyStatus.REMOVED);
+
+        if (copy.getStatus() == CopyStatus.AVAILABLE) {
+            if (loanRepository.existsLoanByCopy_Id(copyId) || reservationRepository.existsReservationByCopy_Id(copyId)) {
+                copy.setStatus(CopyStatus.REMOVED);
+                copyRepository.save(copy);
+            } else copyRepository.delete(copy);
+        }
     }
 }

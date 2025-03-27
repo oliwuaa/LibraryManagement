@@ -10,6 +10,9 @@ import java.util.Optional;
 
 public interface LibraryRepository extends JpaRepository<Library, Long>, JpaSpecificationExecutor<Library> {
     Optional<Library> findByName(String name);
+
     Optional<Library> findByAddress(String location);
+
     List<Library> findByStatus(LibraryStatus status);
+
 }

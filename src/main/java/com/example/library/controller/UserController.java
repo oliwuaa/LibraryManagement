@@ -1,5 +1,6 @@
 package com.example.library.controller;
 
+import com.example.library.model.Book;
 import com.example.library.model.User;
 import com.example.library.model.UserRole;
 import com.example.library.service.UserService;
@@ -16,10 +17,9 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    public ResponseEntity<List<User>> getAllUsers(){
+    public ResponseEntity<List<User>> getAllUsers() {
         List<User> users = userService.getAllUsers();
-        if(users.isEmpty())
-            return ResponseEntity.noContent().build();
+        if (users.isEmpty()) return ResponseEntity.noContent().build();
         return ResponseEntity.ok(users);
     }
 
@@ -55,8 +55,7 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<String> registerUser(@RequestBody User user,
-                                               @RequestParam(required = false) Long libraryId) {
+    public ResponseEntity<String> registerUser(@RequestBody User user, @RequestParam(required = false) Long libraryId) {
         try {
             userService.addUser(user, libraryId);
             return ResponseEntity.ok("User registered successfully");
@@ -68,9 +67,21 @@ public class UserController {
     }
 
     @PutMapping("/{userId}")
-    public ResponseEntity<String> updateUser(@PathVariable Long userId, @RequestBody User user){
+    public ResponseEntity<String> updateUser(@PathVariable Long userId, @RequestBody User user) {
         try {
-            userService.updateUser(userId,user);
+            userService.updateUser(userId, user);
+            return ResponseEntity.ok("User updated successfully");
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(400).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("An unexpected error occurred: " + e.getMessage());
+        }
+    }
+
+    @PatchMapping("/{userId}")
+    public ResponseEntity<String> changeRole(@PathVariable Long userId, @RequestBody UserRole role, @RequestParam(required = false) Long libraryId) {
+        try {
+            userService.changeRole(userId, role, libraryId);
             return ResponseEntity.ok("User updated successfully");
         } catch (IllegalStateException e) {
             return ResponseEntity.status(400).body(e.getMessage());
@@ -80,7 +91,6 @@ public class UserController {
     }
 
 
-    // TO CHANGE
     @DeleteMapping("/{userId}")
     public ResponseEntity<String> deleteUser(@PathVariable Long userId) {
         try {
@@ -93,6 +103,15 @@ public class UserController {
         }
     }
 
-    // to do - search
+    @GetMapping("/search")
+    public ResponseEntity<List<User>> getUsersBySearchCriteria(@RequestParam(required = false) String name, @RequestParam(required = false) String email, @RequestParam(required = false) UserRole role) {
+
+        List<User> users = userService.searchUsers(name, email, role);
+
+        if (users.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(users);
+    }
 
 }

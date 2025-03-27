@@ -34,24 +34,16 @@ public class BookController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<Book>> getBooksBySearchCriteria(
-            @RequestParam(required = false) String title,
-            @RequestParam(required = false) String author,
-            @RequestParam(required = false) String isbn) {
+    public ResponseEntity<List<Book>> getBooksBySearchCriteria(@RequestParam(required = false) String title, @RequestParam(required = false) String author, @RequestParam(required = false) String isbn) {
         List<Book> books = bookService.getBooksByParams(title, author, isbn);
         if (books.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-
         return ResponseEntity.ok(books);
     }
 
     @PutMapping("/{bookId}")
-    public ResponseEntity<String> updateBook(
-            @PathVariable Long bookId,
-            @RequestParam(required = false) String title,
-            @RequestParam(required = false) String author,
-            @RequestParam(required = false) String isbn) {
+    public ResponseEntity<String> updateBook(@PathVariable Long bookId, @RequestParam(required = false) String title, @RequestParam(required = false) String author, @RequestParam(required = false) String isbn) {
         try {
             bookService.updateBook(bookId, title, author, isbn);
             return ResponseEntity.ok("Book updated successfully");
@@ -74,7 +66,6 @@ public class BookController {
         }
     }
 
-    // TO CHANGE
     @DeleteMapping("/{bookId}")
     public ResponseEntity<String> deleteBook(@PathVariable Long bookId) {
         try {
@@ -87,3 +78,4 @@ public class BookController {
         }
     }
 }
+

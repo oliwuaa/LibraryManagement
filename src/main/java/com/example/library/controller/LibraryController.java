@@ -63,7 +63,7 @@ public class LibraryController {
     public ResponseEntity<String> updateLibrary(@PathVariable Long libraryId, @RequestBody Library library) {
         try {
             libraryService.updateLibrary(libraryId, library);
-            return ResponseEntity.ok("Library deleted successfully");
+            return ResponseEntity.ok("Library updated successfully");
         } catch (IllegalStateException e) {
             return ResponseEntity.status(400).body(e.getMessage());
         } catch (Exception e) {

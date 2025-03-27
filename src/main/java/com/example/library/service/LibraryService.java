@@ -1,9 +1,7 @@
 package com.example.library.service;
 
 import com.example.library.model.*;
-import com.example.library.repository.CopyRepository;
-import com.example.library.repository.LibraryRepository;
-import com.example.library.repository.UserRepository;
+import com.example.library.repository.*;
 import com.example.library.specification.LibrarySpecification;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +17,8 @@ public class LibraryService {
     private final LibraryRepository libraryRepository;
     private final UserRepository userRepository;
     private final CopyRepository copyRepository;
+    private final LoanRepository loanRepository;
+    private final ReservationRepository reservationRepository;
 
     public List<Library> getAllLibraries() {
         return libraryRepository.findAll();
@@ -49,6 +49,7 @@ public class LibraryService {
     public void addLibrary(Library newLibrary) throws IllegalAccessException {
         if (libraryRepository.findByAddress(newLibrary.getAddress()).isPresent())
             throw new IllegalAccessException("This library has already exist");
+        newLibrary.setStatus(LibraryStatus.ACTIVE);
         libraryRepository.save(newLibrary);
 
     }
@@ -62,23 +63,35 @@ public class LibraryService {
 
     public void deleteLibrary(Long libraryId) throws IllegalStateException {
 
+
         Library library = libraryRepository.findById(libraryId)
                 .orElseThrow(() -> new RuntimeException("Library with ID " + libraryId + " doesn't exist."));
 
         List<Copy> copies = copyRepository.findByLibraryId(libraryId);
+        boolean hasActiveLoansOrReservations = false;
+
         for (Copy copy : copies) {
-            copy.setStatus(CopyStatus.REMOVED);
-            copyRepository.save(copy);
+            if (loanRepository.existsLoanByCopy_Id(copy.getId()) || reservationRepository.existsReservationByCopy_Id(copy.getId())) {
+                copy.setStatus(CopyStatus.REMOVED);
+                copyRepository.save(copy);
+                hasActiveLoansOrReservations = true;
+            } else copyRepository.delete(copy);
         }
 
-        List<User> librarians = userRepository.findByRoleAndLibraryId(UserRole.LIBRARIAN, libraryId);
-        for (User user : librarians) {
-            user.setRole(UserRole.USER);
-            user.setLibrary(null);
-            userRepository.save(user);
+        userRepository.findByRoleAndLibraryId(UserRole.LIBRARIAN, libraryId)
+                .forEach(user -> {
+                    user.setRole(UserRole.USER);
+                    user.setLibrary(null);
+                    userRepository.save(user);
+                });
+
+        if (hasActiveLoansOrReservations) {
+            library.setStatus(LibraryStatus.CLOSED);
+            libraryRepository.save(library);
+        } else {
+            libraryRepository.delete(library);
         }
-        library.setStatus(LibraryStatus.CLOSED);
-        libraryRepository.save(library);
+
     }
 
     @Transactional

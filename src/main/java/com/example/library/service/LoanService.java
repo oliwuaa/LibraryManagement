@@ -3,6 +3,7 @@ package com.example.library.service;
 import com.example.library.model.*;
 import com.example.library.repository.CopyRepository;
 import com.example.library.repository.LoanRepository;
+import com.example.library.repository.ReservationRepository;
 import com.example.library.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,7 @@ public class LoanService {
     private final UserRepository userRepository;
 
     private final CopyRepository copyRepository;
-
+private final ReservationRepository reservationRepository;
 
 
     public List<Loan> getAllLoans() {
@@ -35,11 +36,12 @@ public class LoanService {
         return loanRepository.findByUserIdAndReturnDateIsNull(userId);
     }
 
+
     public void borrowBook(Long userId, Long copyId) throws IllegalAccessException {
         User user = userRepository.findById(userId).orElseThrow(() -> new IllegalStateException("User with ID " + userId + " does not exist"));
         Copy copy = copyRepository.findById(copyId).orElseThrow(() -> new IllegalStateException("Copy with ID " + copyId + " does not exist"));
 
-        if (copy.getStatus() != CopyStatus.AVAILABLE) {
+        if (copy.getStatus() != CopyStatus.AVAILABLE && !reservationRepository.existsReservationByCopy_IdAndAndUser_IdAndStatus(copyId,userId,ReservationStatus.WAITING) ) {
             throw new IllegalAccessException("This copy isn't available");
         }
 
@@ -51,25 +53,31 @@ public class LoanService {
                 .endDate(LocalDate.now().plusWeeks(2))
                 .build();
         loanRepository.save(loan);
+
+        if(reservationRepository.existsReservationByCopy_Id(copyId)){
+           Reservation reservation =  reservationRepository.findByCopy_IdAndStatus(copyId, ReservationStatus.WAITING).orElseThrow(() -> new IllegalStateException("There's no such reservation"));
+           reservation.setStatus(ReservationStatus.CANCELLED);
+           reservationRepository.save(reservation);
+        }
     }
 
     @Transactional
-    public void returnBook(Long userId, Long copyId) {
-        Loan loan = loanRepository.findByUserIdAndCopyIdAndReturnDateIsNull(userId, copyId)
+    public void returnBook(Long loanId) {
+        Loan loan = loanRepository.findByIdAndReturnDateIsNull(loanId)
                 .orElseThrow(() -> new IllegalStateException("This book has already been returned or loan doesn't exist"));
 
         loan.setReturnDate(LocalDate.now());
         loan.getCopy().setStatus(CopyStatus.AVAILABLE);
-
     }
 
-    public void extendLoan(LocalDate date, Long userId, Long copyId) throws IllegalAccessException {
-        Loan loan = loanRepository.findByUserIdAndCopyIdAndReturnDateIsNull(userId, copyId)
+    public void extendLoan(LocalDate date, Long loanId) throws IllegalAccessException {
+        Loan loan = loanRepository.findByIdAndReturnDateIsNull(loanId)
                 .orElseThrow(() -> new IllegalStateException("This loan doesn't exist"));
         if (date.isBefore(loan.getEndDate())) {
             throw new IllegalAccessException("The new date must be after endDate");
         }
-
+        loan.setEndDate(date);
+        loanRepository.save(loan);
     }
 
 }

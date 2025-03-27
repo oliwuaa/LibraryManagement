@@ -38,9 +38,17 @@ public class BookService {
     }
 
     public List<Book> getBooksByParams(String title, String author, String isbn) {
-        Specification<Book> specification = Specification.where(BookSpecification.hasTitle(title))
-                .and(BookSpecification.hasAuthor(author))
-                .and(BookSpecification.hasIsbn(isbn));
+        Specification<Book> specification = Specification.where(null);
+
+        if (title != null) {
+            specification = specification.and(BookSpecification.hasTitle(title));
+        }
+        if (author != null) {
+            specification = specification.and(BookSpecification.hasAuthor(author));
+        }
+        if (isbn != null) {
+            specification = specification.and(BookSpecification.hasIsbn(isbn));
+        }
 
         return bookRepository.findAll(specification);
     }
@@ -51,11 +59,10 @@ public class BookService {
         bookRepository.save(newBook);
     }
 
-    //TO THINK ABOUT
     public void deleteBook(Long bookId) throws IllegalStateException {
         Book book = bookRepository.findById(bookId).orElseThrow(() -> new IllegalStateException("Book with ID " + bookId + " does not exist"));
         if (copyRepository.existsByBook(book))
-            throw new IllegalStateException("Cannot delete book because there are existing copies.");
+            throw new IllegalStateException("Cannot delete book, because there are existing copies.");
         bookRepository.delete(book);
     }
 
@@ -74,10 +81,7 @@ public class BookService {
 
         if (isbn != null && !isbn.isBlank() && !bookRepository.existsByIsbn(isbn)) {
             book.setIsbn(isbn);
-        } else {
-            throw new IllegalStateException("Book with this ISBN already exists!");
         }
     }
-
 
 }

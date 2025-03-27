@@ -1,6 +1,5 @@
 package com.example.library.controller;
 
-import com.example.library.model.Book;
 import com.example.library.model.Copy;
 import com.example.library.model.CopyStatus;
 import com.example.library.service.CopyService;
@@ -68,7 +67,6 @@ public class CopyController {
         }
     }
 
-    // TO CHANGE
     @DeleteMapping("/{copyId}")
     public ResponseEntity<String> deleteCopy(@PathVariable Long copyId) {
         try {

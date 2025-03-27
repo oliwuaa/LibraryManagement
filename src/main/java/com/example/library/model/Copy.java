@@ -27,6 +27,6 @@ public class Copy {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private CopyStatus status = CopyStatus.AVAILABLE;
+    private CopyStatus status;
 
 }

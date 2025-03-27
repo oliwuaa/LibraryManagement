@@ -17,7 +17,7 @@ public class LoanController {
     private final LoanService loanService;
 
     @GetMapping
-    public ResponseEntity<List<Loan>> getAllLoans(){
+    public ResponseEntity<List<Loan>> getAllLoans() {
         List<Loan> loans = loanService.getAllLoans();
         if (loans.isEmpty()) {
             return ResponseEntity.noContent().build();
@@ -26,8 +26,8 @@ public class LoanController {
         return ResponseEntity.ok(loans);
     }
 
-    @GetMapping("users/{userId}/loans")
-    public ResponseEntity<List<Loan>> getUserLoans(@PathVariable Long userId){
+    @GetMapping("users/{userId}")
+    public ResponseEntity<List<Loan>> getUserLoans(@PathVariable Long userId) {
         List<Loan> loans = loanService.getAllUserLoan(userId);
         if (loans.isEmpty()) {
             return ResponseEntity.noContent().build();
@@ -37,9 +37,9 @@ public class LoanController {
 
     // ADD CHECKING IF LIBRARIAN IS FROM THE SAME LIBRARY
     @PostMapping
-    public  ResponseEntity<String> createLoan(@RequestParam Long userId, @RequestParam Long copyId){
+    public ResponseEntity<String> createLoan(@RequestParam Long userId, @RequestParam Long copyId) {
         try {
-            loanService.borrowBook(userId,copyId);
+            loanService.borrowBook(userId, copyId);
             return ResponseEntity.ok("Book borrowed successfully");
         } catch (IllegalStateException e) {
             return ResponseEntity.status(400).body(e.getMessage());
@@ -48,11 +48,10 @@ public class LoanController {
         }
     }
 
-    // too much parameters
     @PostMapping("/{loanId}/return")
-    public  ResponseEntity<String> returnBook(@PathVariable Long loanId, @RequestParam Long userId, @RequestParam Long copyId){
+    public ResponseEntity<String> returnBook(@PathVariable Long loanId) {
         try {
-            loanService.returnBook(userId,copyId);
+            loanService.returnBook(loanId);
             return ResponseEntity.ok("Book returned successfully");
         } catch (IllegalStateException e) {
             return ResponseEntity.status(400).body(e.getMessage());
@@ -62,9 +61,9 @@ public class LoanController {
     }
 
     @PostMapping("/{loanId}/extend")
-    public  ResponseEntity<String> extendLoan(@PathVariable Long loanId, @RequestParam Long userId, @RequestParam Long copyId, @RequestBody LocalDate returnDate){
+    public ResponseEntity<String> extendLoan(@PathVariable Long loanId, @RequestParam LocalDate returnDate) {
         try {
-            loanService.extendLoan(returnDate,userId,copyId);
+            loanService.extendLoan(returnDate, loanId);
             return ResponseEntity.ok("Loan extended successfully");
         } catch (IllegalStateException e) {
             return ResponseEntity.status(400).body(e.getMessage());

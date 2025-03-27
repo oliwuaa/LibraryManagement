@@ -26,8 +26,7 @@ public class ReservationService {
     }
 
     public void reserveCopy(Long userId, Long copyId) {
-        Copy copy = copyRepository.findById(copyId)
-                .orElseThrow(() -> new RuntimeException("Copy not found!"));
+        Copy copy = copyRepository.findById(copyId).orElseThrow(() -> new RuntimeException("Copy not found!"));
 
         if (copy.getStatus() != CopyStatus.AVAILABLE) {
             throw new RuntimeException("Copy is not available for reservation!");
@@ -38,13 +37,7 @@ public class ReservationService {
         copy.setStatus(CopyStatus.RESERVED);
         copyRepository.save(copy);
 
-        Reservation reservation = Reservation.builder().
-                user(user).
-                copy(copy).
-                createdAt(LocalDateTime.now()).
-                expirationDate(LocalDateTime.now().plusDays(2)).
-                status(ReservationStatus.WAITING).
-                build();
+        Reservation reservation = Reservation.builder().user(user).copy(copy).createdAt(LocalDateTime.now()).expirationDate(LocalDateTime.now().plusDays(2)).status(ReservationStatus.WAITING).build();
 
         reservationRepository.save(reservation);
     }
@@ -53,11 +46,14 @@ public class ReservationService {
         Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(() -> new IllegalStateException("There's no such reservation"));
         reservation.setStatus(ReservationStatus.CANCELLED);
         reservationRepository.save(reservation);
+
+        Copy copy = reservation.getCopy();
+        copy.setStatus(CopyStatus.AVAILABLE);
+        copyRepository.save(copy);
     }
 
     public void expiredReservations() {
-        List<Reservation> expiredReservations = reservationRepository
-                .findAllByExpirationDateBeforeAndStatus(LocalDateTime.now(), ReservationStatus.WAITING);
+        List<Reservation> expiredReservations = reservationRepository.findAllByExpirationDateBeforeAndStatus(LocalDateTime.now(), ReservationStatus.WAITING);
 
         for (Reservation reservation : expiredReservations) {
             reservation.setStatus(ReservationStatus.EXPIRED);
