@@ -1,5 +1,6 @@
 package com.example.library.service;
 
+import com.example.library.dto.BookDTO;
 import com.example.library.specification.BookSpecification;
 import com.example.library.model.Book;
 import com.example.library.repository.BookRepository;
@@ -53,9 +54,14 @@ public class BookService {
         return bookRepository.findAll(specification);
     }
 
-    public void addBook(Book newBook) throws IllegalAccessException {
-        if (bookRepository.existsByIsbn(newBook.getIsbn()))
+    public void addBook(BookDTO book) throws IllegalAccessException {
+        if (bookRepository.existsByIsbn(book.isbn()))
             throw new IllegalStateException("This book has already been added");
+
+        Book newBook = new Book();
+        newBook.setTitle(book.title());
+        newBook.setAuthor(book.author());
+        newBook.setIsbn(book.isbn());
         bookRepository.save(newBook);
     }
 

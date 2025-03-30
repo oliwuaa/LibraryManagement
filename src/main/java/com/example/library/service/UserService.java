@@ -1,5 +1,7 @@
 package com.example.library.service;
 
+import com.example.library.dto.UserDTO;
+import com.example.library.dto.UserRegistrationDTO;
 import com.example.library.model.Library;
 import com.example.library.model.User;
 import com.example.library.model.UserRole;
@@ -35,12 +37,14 @@ public class UserService {
         return userRepository.findByRoleAndLibraryId(UserRole.LIBRARIAN, libraryId);
     }
 
-    public void addUser(User newUser, Long libraryId) {
-        if (userRepository.findByEmail(newUser.getEmail()).isPresent()) {
+    public void addUser(UserRegistrationDTO user, Long libraryId) {
+        if (userRepository.findByEmail(user.email()).isPresent()) {
             throw new IllegalStateException("Email already taken");
         }
 
-        if (newUser.getRole() == UserRole.LIBRARIAN) {
+        User newUser = new User();
+
+        if (user.role() == UserRole.LIBRARIAN) {
             if (libraryId == null) {
                 throw new IllegalArgumentException("Library ID is required for librarians");
             }
@@ -52,46 +56,56 @@ public class UserService {
             newUser.setLibrary(null);
         }
 
+
+        newUser.setEmail(user.email());
+        newUser.setPassword(user.password());
+        newUser.setRole(user.role());
+        if (user.name() != null) {
+            newUser.setName(user.name());
+        }
+        if (user.surname() != null) {
+            newUser.setSurname(user.surname());
+        }
+
         userRepository.save(newUser);
     }
 
 
-    public void updateUser(Long userId, User updatedUser) {
-        User user = userRepository.findById(userId)
+    public void updateUser(Long userId, UserDTO user) {
+        User newUser = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalStateException("User with ID " + userId + " does not exist"));
 
-        if (updatedUser.getName() != null && !updatedUser.getName().isEmpty()) {
-            user.setName(updatedUser.getName());
+        if (user.name() != null && !user.name().isEmpty()) {
+            newUser.setName(user.name());
         }
 
-        if (updatedUser.getSurname() != null && !updatedUser.getSurname().isEmpty()) {
-            user.setSurname(updatedUser.getSurname());
+        if (user.surname() != null && !user.surname().isEmpty()) {
+            newUser.setSurname(user.surname());
         }
 
-        if (updatedUser.getEmail() != null && !updatedUser.getEmail().isEmpty()) {
-            if (userRepository.findByEmail(updatedUser.getEmail()).isPresent()) {
+        if (user.email() != null && !user.email().isEmpty()) {
+            if (userRepository.findByEmail(user.email()).isPresent()) {
                 throw new IllegalStateException("Email already taken");
             }
-            user.setEmail(updatedUser.getEmail());
+            newUser.setEmail(user.email());
         }
 
-        userRepository.save(user);
+        userRepository.save(newUser);
     }
 
-    public void changeRole(Long userId, UserRole role, Long libraryId ) {
+    public void changeRole(Long userId, UserRole role, Long libraryId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalStateException("User with ID " + userId + " does not exist"));
 
-        if(user.getRole()==role){
+        if (user.getRole() == role) {
             throw new IllegalStateException("User already has this role.");
         }
 
-        if(role == UserRole.USER) {
+        if (role == UserRole.USER) {
             user.setRole(role);
             user.setLibrary(null);
-        }
-        else {
-            if(libraryId==null){
+        } else {
+            if (libraryId == null) {
                 throw new IllegalStateException("Library Id needed.");
             }
 
@@ -105,6 +119,7 @@ public class UserService {
         userRepository.save(user);
     }
 
+    // TO BE CHANGED
     public void deleteUser(Long userId) {
         if (!userRepository.existsById(userId)) {
             throw new IllegalStateException("User not found");

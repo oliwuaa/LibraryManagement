@@ -84,6 +84,8 @@ public class CopyService {
                 copy.setStatus(CopyStatus.REMOVED);
                 copyRepository.save(copy);
             } else copyRepository.delete(copy);
+        } else {
+            throw new IllegalStateException("Cannot delete copy, cause it's borrowed, reserved or already removed.");
         }
     }
 }
