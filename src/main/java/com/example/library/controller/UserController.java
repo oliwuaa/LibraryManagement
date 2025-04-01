@@ -284,7 +284,8 @@ public class UserController {
                             mediaType = "application/json",
                             examples = {
                                     @ExampleObject(name = "Duplicate Role", value = "{\"error\": \"User already has this role.\"}"),
-                                    @ExampleObject(name = "Missing Library Id", value = "{\"error\": \"Library Id needed.\"}")
+                                    @ExampleObject(name = "Missing Library Id", value = "{\"error\": \"Library Id needed.\"}"),
+                                    @ExampleObject(name = "Invalid Role", value = "{\"error\": \"Invalid value 'STUDENT' for parameter. Expected type: UserRole. Allowed values: USER, LIBRARIAN, ADMIN\"}")
                             }
                     )
             ),
@@ -318,7 +319,7 @@ public class UserController {
             description = "Deletes a user from the system based on the provided user Id. The user will be removed from the database."
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "User updated successfully", content = @Content(
+            @ApiResponse(responseCode = "200", description = "User deleted successfully", content = @Content(
                     mediaType = "text/plain",
                     schema = @Schema(example = "User deleted successfully")
             )
@@ -360,7 +361,7 @@ public class UserController {
                     description = "Invalid value for 'role' parameter",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(example = "{\"error\": \"Invalid value 'READER' for parameter 'role'. Expected one of: USER, LIBRARIAN, ADMIN\"}")
+                            schema = @Schema(example = "{\"error\": \"Invalid value 'READER' for parameter. Expected one of: USER, LIBRARIAN, ADMIN\"}")
                     )
             )
     })

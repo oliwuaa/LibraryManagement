@@ -1,5 +1,7 @@
 package com.example.library.service;
 
+import com.example.library.exception.BadRequestException;
+import com.example.library.exception.NotFoundException;
 import com.example.library.model.Book;
 import com.example.library.model.Copy;
 import com.example.library.model.CopyStatus;
@@ -31,7 +33,7 @@ public class CopyService {
     }
 
     public Copy getCopyById(Long copyId) {
-        return copyRepository.findById(copyId).orElseThrow(() -> new IllegalStateException("Copy with ID " + copyId + " does not exist"));
+        return copyRepository.findById(copyId).orElseThrow(() -> new NotFoundException("Copy with ID " + copyId + " does not exist"));
     }
 
     public List<Copy> getCopiesByLibrary(Long libraryId) {
@@ -55,11 +57,12 @@ public class CopyService {
     }
 
     @Transactional
-    public void addCopy(Long bookId, Long libraryId) throws IllegalAccessException {
+    public void addCopy(Long bookId, Long libraryId) {
         Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new EntityNotFoundException("Book with ID " + bookId + " does not exist"));
+                .orElseThrow(() -> new NotFoundException("Book with ID " + bookId + " does not exist"));
+
         Library library = libraryRepository.findById(libraryId)
-                .orElseThrow(() -> new EntityNotFoundException("Library with ID " + libraryId + " does not exist"));
+                .orElseThrow(() -> new NotFoundException("Library with ID " + libraryId + " does not exist"));
 
         Copy copy = Copy.builder()
                 .book(book)
@@ -67,25 +70,34 @@ public class CopyService {
                 .status(CopyStatus.AVAILABLE)
                 .build();
         copyRepository.save(copy);
-
     }
 
     public void updateCopyStatus(Long copyId, CopyStatus status) {
-        Copy copy = copyRepository.findById(copyId).orElseThrow(() -> new IllegalStateException("Copy with ID " + copyId + " does not exist"));
+        Copy copy = copyRepository.findById(copyId)
+                .orElseThrow(() -> new NotFoundException("Copy with ID " + copyId + " does not exist"));
+
+        if (copy.getStatus() == status) {
+            throw new BadRequestException("Copy already has this status.");
+        }
+
         copy.setStatus(status);
         copyRepository.save(copy);
     }
 
+
     public void deleteCopy(Long copyId) {
-        Copy copy = copyRepository.findById(copyId).orElseThrow(() -> new IllegalStateException("Copy with ID " + copyId + " does not exist"));
+        Copy copy = copyRepository.findById(copyId)
+                .orElseThrow(() -> new NotFoundException("Copy with ID " + copyId + " does not exist"));
 
         if (copy.getStatus() == CopyStatus.AVAILABLE) {
             if (loanRepository.existsLoanByCopy_Id(copyId) || reservationRepository.existsReservationByCopy_Id(copyId)) {
                 copy.setStatus(CopyStatus.REMOVED);
                 copyRepository.save(copy);
-            } else copyRepository.delete(copy);
+            } else {
+                copyRepository.delete(copy);
+            }
         } else {
-            throw new IllegalStateException("Cannot delete copy, cause it's borrowed, reserved or already removed.");
+            throw new BadRequestException("Cannot delete copy – it is currently borrowed, reserved, or already removed.");
         }
     }
 }
