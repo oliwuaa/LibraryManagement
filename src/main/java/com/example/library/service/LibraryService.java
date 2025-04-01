@@ -1,6 +1,8 @@
 package com.example.library.service;
 
 import com.example.library.dto.LibraryDTO;
+import com.example.library.exception.BadRequestException;
+import com.example.library.exception.NotFoundException;
 import com.example.library.model.*;
 import com.example.library.repository.*;
 import com.example.library.specification.LibrarySpecification;
@@ -27,7 +29,7 @@ public class LibraryService {
     }
 
     public Library getLibraryById(Long libraryId) {
-        return libraryRepository.findById(libraryId).orElseThrow(() -> new RuntimeException("Library not found"));
+        return libraryRepository.findById(libraryId).orElseThrow(() -> new NotFoundException("Library with ID " + libraryId + " not found"));
     }
 
     public List<Library> getLibrariesByStatus(LibraryStatus status) {
@@ -48,9 +50,9 @@ public class LibraryService {
         return libraryRepository.findAll(spec);
     }
 
-    public void addLibrary(LibraryDTO library) throws IllegalAccessException {
+    public void addLibrary(LibraryDTO library) {
         if (libraryRepository.findByAddress(library.address()).isPresent())
-            throw new IllegalAccessException("This library has already exist");
+            throw new BadRequestException("This library already exists");
 
         Library newLibrary = new Library();
         newLibrary.setStatus(LibraryStatus.ACTIVE);
@@ -82,11 +84,9 @@ public class LibraryService {
                 });
     }
 
-    public void deleteLibrary(Long libraryId) throws IllegalStateException {
-
-
+    public boolean deleteLibrary(Long libraryId) {
         Library library = libraryRepository.findById(libraryId)
-                .orElseThrow(() -> new RuntimeException("Library with ID " + libraryId + " doesn't exist."));
+                .orElseThrow(() -> new NotFoundException("Library with ID " + libraryId + " doesn't exist."));
 
         List<Copy> copies = copyRepository.findByLibraryId(libraryId);
         boolean hasActiveLoansOrReservations = false;
@@ -98,7 +98,9 @@ public class LibraryService {
                 endLoan(copy.getId());
                 endReservation(copy.getId());
                 hasActiveLoansOrReservations = true;
-            } else copyRepository.delete(copy);
+            } else {
+                copyRepository.delete(copy);
+            }
         }
 
         userRepository.findByRoleAndLibraryId(UserRole.LIBRARIAN, libraryId)
@@ -111,23 +113,31 @@ public class LibraryService {
         if (hasActiveLoansOrReservations) {
             library.setStatus(LibraryStatus.CLOSED);
             libraryRepository.save(library);
+            return false; // closed
         } else {
             libraryRepository.delete(library);
+            return true; // deleted
         }
-
     }
 
     @Transactional
-    public void updateLibrary(Long libraryId, LibraryDTO library) throws IllegalStateException {
-        Library changedLibrary = libraryRepository.findById(libraryId).orElseThrow(() -> new IllegalStateException("Library with ID " + libraryId + " does not exist"));
+    public void updateLibrary(Long libraryId, LibraryDTO library) {
+        if ((library.name() == null || library.name().isBlank()) &&
+                (library.address() == null || library.address().isBlank())) {
+            throw new BadRequestException("At least one field (name or address) must be provided for update.");
+        }
+
+        Library changedLibrary = libraryRepository.findById(libraryId)
+                .orElseThrow(() -> new NotFoundException("Library with ID " + libraryId + " does not exist"));
 
         String name = library.name();
         String address = library.address();
-        if (name != null && name.length() > 0 && !Objects.equals(changedLibrary.getName(), name)) {
+
+        if (name != null && !name.isBlank() && !Objects.equals(changedLibrary.getName(), name)) {
             changedLibrary.setName(name);
         }
 
-        if (address != null && address.length() > 0 && !Objects.equals(changedLibrary.getAddress(), address)) {
+        if (address != null && !address.isBlank() && !Objects.equals(changedLibrary.getAddress(), address)) {
             changedLibrary.setAddress(address);
         }
 
