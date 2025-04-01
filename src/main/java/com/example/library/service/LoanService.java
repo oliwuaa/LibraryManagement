@@ -1,5 +1,7 @@
 package com.example.library.service;
 
+import com.example.library.exception.BadRequestException;
+import com.example.library.exception.NotFoundException;
 import com.example.library.model.*;
 import com.example.library.repository.CopyRepository;
 import com.example.library.repository.LoanRepository;
@@ -29,6 +31,9 @@ private final ReservationRepository reservationRepository;
     }
 
     public List<Loan> getAllUserLoan(Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new NotFoundException("User with ID " + userId + " does not exist");
+        }
         return loanRepository.findByUserId(userId);
     }
 
@@ -37,15 +42,22 @@ private final ReservationRepository reservationRepository;
     }
 
 
-    public void borrowBook(Long userId, Long copyId) throws IllegalAccessException {
-        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalStateException("User with ID " + userId + " does not exist"));
-        Copy copy = copyRepository.findById(copyId).orElseThrow(() -> new IllegalStateException("Copy with ID " + copyId + " does not exist"));
+    public void borrowBook(Long userId, Long copyId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User with ID " + userId + " does not exist"));
 
-        if (copy.getStatus() != CopyStatus.AVAILABLE && !reservationRepository.existsReservationByCopy_IdAndAndUser_IdAndStatus(copyId,userId,ReservationStatus.WAITING) ) {
-            throw new IllegalAccessException("This copy isn't available");
+        Copy copy = copyRepository.findById(copyId)
+                .orElseThrow(() -> new NotFoundException("Copy with ID " + copyId + " does not exist"));
+
+        boolean hasReservation = reservationRepository.existsReservationByCopy_IdAndAndUser_IdAndStatus(copyId, userId, ReservationStatus.WAITING);
+
+        if (copy.getStatus() != CopyStatus.AVAILABLE && !hasReservation) {
+            throw new BadRequestException("This copy isn't available");
         }
 
         copy.setStatus(CopyStatus.BORROWED);
+        copyRepository.save(copy);
+
         Loan loan = Loan.builder()
                 .user(user)
                 .copy(copy)
@@ -54,28 +66,30 @@ private final ReservationRepository reservationRepository;
                 .build();
         loanRepository.save(loan);
 
-        if(reservationRepository.existsReservationByCopy_Id(copyId)){
-           Reservation reservation =  reservationRepository.findByCopy_IdAndStatus(copyId, ReservationStatus.WAITING).orElseThrow(() -> new IllegalStateException("There's no such reservation"));
-           reservation.setStatus(ReservationStatus.CANCELLED);
-           reservationRepository.save(reservation);
-        }
+        reservationRepository.findByCopy_IdAndStatus(copyId, ReservationStatus.WAITING)
+                .ifPresent(reservation -> {
+                    reservation.setStatus(ReservationStatus.CANCELLED);
+                    reservationRepository.save(reservation);
+                });
     }
 
     @Transactional
     public void returnBook(Long loanId) {
         Loan loan = loanRepository.findByIdAndReturnDateIsNull(loanId)
-                .orElseThrow(() -> new IllegalStateException("This book has already been returned or loan doesn't exist"));
+                .orElseThrow(() -> new BadRequestException("This book has already been returned or loan doesn't exist"));
 
         loan.setReturnDate(LocalDate.now());
         loan.getCopy().setStatus(CopyStatus.AVAILABLE);
     }
 
-    public void extendLoan(LocalDate date, Long loanId) throws IllegalAccessException {
+    public void extendLoan(LocalDate date, Long loanId) {
         Loan loan = loanRepository.findByIdAndReturnDateIsNull(loanId)
-                .orElseThrow(() -> new IllegalStateException("This loan doesn't exist"));
+                .orElseThrow(() -> new NotFoundException("This loan doesn't exist"));
+
         if (date.isBefore(loan.getEndDate())) {
-            throw new IllegalAccessException("The new date must be after endDate");
+            throw new BadRequestException("The new date must be after endDate");
         }
+
         loan.setEndDate(date);
         loanRepository.save(loan);
     }
