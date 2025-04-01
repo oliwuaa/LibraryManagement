@@ -2,6 +2,8 @@ package com.example.library.service;
 
 import com.example.library.dto.UserDTO;
 import com.example.library.dto.UserRegistrationDTO;
+import com.example.library.exception.BadRequestException;
+import com.example.library.exception.NotFoundException;
 import com.example.library.model.Library;
 import com.example.library.model.User;
 import com.example.library.model.UserRole;
@@ -11,6 +13,7 @@ import com.example.library.specification.UserSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+
 
 import java.util.List;
 
@@ -26,7 +29,7 @@ public class UserService {
     }
 
     public User getUserById(Long userId) {
-        return userRepository.findById(userId).orElseThrow(() -> new IllegalStateException("User with ID " + userId + " does not exist"));
+        return userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User with ID " + userId + " does not exist"));
     }
 
     public List<User> getUsersByRole(UserRole role) {
@@ -39,18 +42,18 @@ public class UserService {
 
     public void addUser(UserRegistrationDTO user, Long libraryId) {
         if (userRepository.findByEmail(user.email()).isPresent()) {
-            throw new IllegalStateException("Email already taken");
+            throw new BadRequestException("Email already taken");
         }
 
         User newUser = new User();
 
         if (user.role() == UserRole.LIBRARIAN) {
             if (libraryId == null) {
-                throw new IllegalArgumentException("Library ID is required for librarians");
+                throw new BadRequestException("Library ID is required for librarians");
             }
 
             Library library = libraryRepository.findById(libraryId)
-                    .orElseThrow(() -> new IllegalArgumentException("Library not found"));
+                    .orElseThrow(() -> new NotFoundException("Library not found"));
             newUser.setLibrary(library);
         } else {
             newUser.setLibrary(null);
@@ -73,7 +76,7 @@ public class UserService {
 
     public void updateUser(Long userId, UserDTO user) {
         User newUser = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalStateException("User with ID " + userId + " does not exist"));
+                .orElseThrow(() -> new NotFoundException("User with ID " + userId + " does not exist"));
 
         if (user.name() != null && !user.name().isEmpty()) {
             newUser.setName(user.name());
@@ -85,7 +88,7 @@ public class UserService {
 
         if (user.email() != null && !user.email().isEmpty()) {
             if (userRepository.findByEmail(user.email()).isPresent()) {
-                throw new IllegalStateException("Email already taken");
+                throw new BadRequestException("Email already taken");
             }
             newUser.setEmail(user.email());
         }
@@ -95,22 +98,22 @@ public class UserService {
 
     public void changeRole(Long userId, UserRole role, Long libraryId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalStateException("User with ID " + userId + " does not exist"));
+                .orElseThrow(() -> new NotFoundException("User with ID " + userId + " does not exist"));
 
         if (user.getRole() == role) {
-            throw new IllegalStateException("User already has this role.");
+            throw new BadRequestException("User already has this role.");
         }
 
-        if (role == UserRole.USER) {
+        if (role == UserRole.USER || role == UserRole.ADMIN) {
             user.setRole(role);
             user.setLibrary(null);
         } else {
             if (libraryId == null) {
-                throw new IllegalStateException("Library Id needed.");
+                throw new BadRequestException("Library Id needed.");
             }
 
             Library library = libraryRepository.findById(libraryId)
-                    .orElseThrow(() -> new IllegalArgumentException("Library not found"));
+                    .orElseThrow(() -> new NotFoundException("Library not found"));
 
             user.setRole(role);
             user.setLibrary(library);
@@ -122,7 +125,7 @@ public class UserService {
     // TO BE CHANGED
     public void deleteUser(Long userId) {
         if (!userRepository.existsById(userId)) {
-            throw new IllegalStateException("User not found");
+            throw new NotFoundException("User with ID " + userId + " does not exist");
         }
         userRepository.deleteById(userId);
     }
