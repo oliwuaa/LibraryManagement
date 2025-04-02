@@ -37,6 +37,9 @@ public class CopyService {
     }
 
     public List<Copy> getCopiesByLibrary(Long libraryId) {
+        if (!libraryRepository.existsById(libraryId)) {
+            throw new NotFoundException("Library with ID " + libraryId + " does not exist");
+        }
         return copyRepository.findByLibraryId(libraryId);
     }
 
@@ -45,6 +48,9 @@ public class CopyService {
     }
 
     public List<Copy> getCopiesByBook(Long bookId) {
+        if (!bookRepository.existsById(bookId)) {
+            throw new NotFoundException("Book with ID " + bookId + " does not exist");
+        }
         return copyRepository.findByBookId(bookId);
     }
 

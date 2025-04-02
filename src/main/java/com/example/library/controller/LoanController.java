@@ -91,6 +91,35 @@ public class LoanController {
         return ResponseEntity.ok(loans);
     }
 
+    @Operation(
+            summary = "Get loan by ID",
+            description = "Returns the loan with the given ID. If no loan is found, a 404 error is returned."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Loan found",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = Loan.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Loan not found",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(example = "{\"error\": \"Loan with ID 10 does not exist\"}")
+                    )
+            )
+    })
+    @GetMapping("/{loanId}")
+    public ResponseEntity<Loan> getLoanById(
+            @Parameter(description = "ID of the loan to fetch", example = "10")
+            @PathVariable Long loanId
+    ) {
+        return ResponseEntity.ok(loanService.getLoanById(loanId));
+    }
 
     @Operation(
             summary = "Create a loan.",

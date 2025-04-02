@@ -37,6 +37,11 @@ private final ReservationRepository reservationRepository;
         return loanRepository.findByUserId(userId);
     }
 
+    public Loan getLoanById(Long loanId) {
+        return loanRepository.findById(loanId)
+                .orElseThrow(() -> new NotFoundException("Loan with ID " + loanId + " does not exist"));
+    }
+
     public List<Loan> getUserActiveLoans(Long userId) {
         return loanRepository.findByUserIdAndReturnDateIsNull(userId);
     }

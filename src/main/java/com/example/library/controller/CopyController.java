@@ -209,19 +209,19 @@ public class CopyController {
                     )
             ),
             @ApiResponse(
-                    responseCode = "404",
-                    description = "Copy not found",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(example = "{\"error\": \"Copy with ID 42 does not exist\"}")
-                    )
-            ),
-            @ApiResponse(
                     responseCode = "400",
                     description = "Cannot delete due to copy status",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(example = "{\"error\": \"Cannot delete copy – it is currently borrowed, reserved, or already removed.\"}")
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Copy not found",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(example = "{\"error\": \"Copy with ID 42 does not exist\"}")
                     )
             )
     })
@@ -232,6 +232,84 @@ public class CopyController {
     ) {
         copyService.deleteCopy(copyId);
         return ResponseEntity.ok("Copy deleted successfully");
+    }
+
+    @Operation(
+            summary = "Get all copies by library ID.",
+            description = "Returns a list of all copies belonging to a specific library. If no copies are found, returns 204 No Content."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "List of copies found for the library",
+                    content = @Content(
+                            mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = Copy.class))
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "No copies found for the library",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Library not found",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(example = "{\"error\": \"Library with ID 5 does not exist\"}")
+                    )
+            )
+    })
+    @GetMapping("/library/{libraryId}")
+    public ResponseEntity<List<Copy>> getCopiesByLibrary(
+            @Parameter(description = "ID of the library", example = "1")
+            @PathVariable Long libraryId
+    ) {
+        List<Copy> copies = copyService.getCopiesByLibrary(libraryId);
+        if (copies.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(copies);
+    }
+
+    @Operation(
+            summary = "Get all copies by book ID.",
+            description = "Returns a list of all copies belonging to a specific book. If no copies are found, returns 204 No Content."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "List of copies found for the book",
+                    content = @Content(
+                            mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = Copy.class))
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "No copies found for the book",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Book not found",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(example = "{\"error\": \"Book with ID 5 does not exist\"}")
+                    )
+            )
+    })
+    @GetMapping("/book/{bookId}")
+    public ResponseEntity<List<Copy>> getCopiesByBook(
+            @Parameter(description = "ID of the book", example = "1")
+            @PathVariable Long bookId
+    ) {
+        List<Copy> copies = copyService.getCopiesByBook(bookId);
+        if (copies.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(copies);
     }
 
 }

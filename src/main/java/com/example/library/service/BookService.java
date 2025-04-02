@@ -1,6 +1,8 @@
 package com.example.library.service;
 
 import com.example.library.dto.BookDTO;
+import com.example.library.exception.BadRequestException;
+import com.example.library.exception.NotFoundException;
 import com.example.library.specification.BookSpecification;
 import com.example.library.model.Book;
 import com.example.library.repository.BookRepository;
@@ -24,16 +26,16 @@ public class BookService {
     }
 
     public Book getBookById(Long bookId) {
-        return bookRepository.findById(bookId).orElseThrow(() -> new IllegalStateException("Book with ID " + bookId + " does not exist"));
+        return bookRepository.findById(bookId).orElseThrow(() -> new NotFoundException("Book with ID " + bookId + " does not exist"));
     }
 
     public Book getBookByISBN(String isbn) {
-        return bookRepository.findByIsbn(isbn).orElseThrow(() -> new IllegalStateException("Book with ISBN" + isbn + " does not exist"));
+        return bookRepository.findByIsbn(isbn).orElseThrow(() -> new NotFoundException("Book with ISBN" + isbn + " does not exist"));
     }
 
-    public List<Book> getBooksByAuthor(String author) throws IllegalStateException {
+    public List<Book> getBooksByAuthor(String author) {
         if (!bookRepository.existsByAuthor(author))
-            throw new IllegalStateException("There are no books written by this author");
+            throw new NotFoundException("There are no books written by this author");
 
         return bookRepository.findByAuthor(author);
     }
@@ -41,22 +43,33 @@ public class BookService {
     public List<Book> getBooksByParams(String title, String author, String isbn) {
         Specification<Book> specification = Specification.where(null);
 
-        if (title != null) {
+        if (title != null && !title.isBlank()) {
             specification = specification.and(BookSpecification.hasTitle(title));
         }
-        if (author != null) {
+        if (author != null && !author.isBlank()) {
             specification = specification.and(BookSpecification.hasAuthor(author));
         }
-        if (isbn != null) {
+        if (isbn != null && !isbn.isBlank()) {
             specification = specification.and(BookSpecification.hasIsbn(isbn));
         }
 
         return bookRepository.findAll(specification);
     }
 
-    public void addBook(BookDTO book) throws IllegalAccessException {
-        if (bookRepository.existsByIsbn(book.isbn()))
-            throw new IllegalStateException("This book has already been added");
+    public void addBook(BookDTO book) {
+        if (book.title() == null || book.title().isBlank()) {
+            throw new BadRequestException("Title cannot be empty");
+        }
+        if (book.author() == null || book.author().isBlank()) {
+            throw new BadRequestException("Author cannot be empty");
+        }
+        if (book.isbn() == null || book.isbn().isBlank()) {
+            throw new BadRequestException("ISBN cannot be empty");
+        }
+
+        if (bookRepository.existsByIsbn(book.isbn())) {
+            throw new BadRequestException("This book has already been added");
+        }
 
         Book newBook = new Book();
         newBook.setTitle(book.title());
@@ -65,29 +78,50 @@ public class BookService {
         bookRepository.save(newBook);
     }
 
-    public void deleteBook(Long bookId) throws IllegalStateException {
-        Book book = bookRepository.findById(bookId).orElseThrow(() -> new IllegalStateException("Book with ID " + bookId + " does not exist"));
-        if (copyRepository.existsByBook(book))
-            throw new IllegalStateException("Cannot delete book, because there are existing copies.");
+    public void deleteBook(Long bookId) {
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new NotFoundException("Book with ID " + bookId + " does not exist"));
+
+        if (copyRepository.existsByBook(book)) {
+            throw new BadRequestException("Cannot delete book, because there are existing copies.");
+        }
+
         bookRepository.delete(book);
     }
 
     @Transactional
     public void updateBook(Long bookId, String title, String author, String isbn) {
         Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new EntityNotFoundException("Book with ID " + bookId + " does not exist"));
+                .orElseThrow(() -> new NotFoundException("Book with ID " + bookId + " does not exist"));
 
-        if (title != null && !title.isBlank()) {
+        boolean modified = false;
+
+        if (title != null && !title.isBlank() && !title.equals(book.getTitle())) {
             book.setTitle(title);
+            modified = true;
         }
 
-        if (author != null && !author.isBlank()) {
+        if (author != null && !author.isBlank() && !author.equals(book.getAuthor())) {
             book.setAuthor(author);
+            modified = true;
         }
 
-        if (isbn != null && !isbn.isBlank() && !bookRepository.existsByIsbn(isbn)) {
-            book.setIsbn(isbn);
+        if (isbn != null && !isbn.isBlank()) {
+            if (!isbn.equals(book.getIsbn())) {
+                if (bookRepository.existsByIsbn(isbn)) {
+                    throw new BadRequestException("This ISBN already exists");
+                }
+                book.setIsbn(isbn);
+                modified = true;
+            }
         }
+
+        if (!modified) {
+            throw new BadRequestException("No changes detected. Provided data is identical to existing.");
+        }
+
+        bookRepository.save(book);
     }
+
 
 }

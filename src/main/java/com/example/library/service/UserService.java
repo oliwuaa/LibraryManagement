@@ -37,6 +37,9 @@ public class UserService {
     }
 
     public List<User> getLibrariansFromLibrary(Long libraryId) {
+        if (!libraryRepository.existsById(libraryId)) {
+            throw new NotFoundException("Library with ID " + libraryId + " does not exist");
+        }
         return userRepository.findByRoleAndLibraryId(UserRole.LIBRARIAN, libraryId);
     }
 
@@ -53,7 +56,7 @@ public class UserService {
             }
 
             Library library = libraryRepository.findById(libraryId)
-                    .orElseThrow(() -> new NotFoundException("Library not found"));
+                    .orElseThrow(() -> new NotFoundException("Library with ID " + libraryId + " does not exist"));
             newUser.setLibrary(library);
         } else {
             newUser.setLibrary(null);

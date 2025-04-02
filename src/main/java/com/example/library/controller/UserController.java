@@ -151,7 +151,6 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
-
     @Operation(
             summary = "Get all librarians from a library.",
             description = "Returns a list of all librarians belonging to the library with the given ID."
@@ -169,6 +168,14 @@ public class UserController {
                     responseCode = "204",
                     description = "No librarians found",
                     content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Library not found",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(example = "{\"error\": \"Library with ID 7 does not exist\"}")
+                    )
             )
     })
     @GetMapping("/library/{libraryId}/librarians")
@@ -184,7 +191,6 @@ public class UserController {
 
         return ResponseEntity.ok(librarians);
     }
-
 
     @Operation(
             summary = "Register a user.",
@@ -221,7 +227,7 @@ public class UserController {
                     description = "Library not found",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(example = "{\"error\": \"Library not found\"}")
+                            schema = @Schema(example = "{\"error\": \"Library with ID 7 does not exist\"}")
                     )
             )
     })
@@ -311,8 +317,6 @@ public class UserController {
         userService.changeRole(userId, role, libraryId);
         return ResponseEntity.ok("User updated successfully");
     }
-
-
 
     @Operation(
             summary = "Delete a user.",
