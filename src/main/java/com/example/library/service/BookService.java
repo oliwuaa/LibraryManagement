@@ -7,11 +7,13 @@ import com.example.library.specification.BookSpecification;
 import com.example.library.model.Book;
 import com.example.library.repository.BookRepository;
 import com.example.library.repository.CopyRepository;
-import jakarta.persistence.EntityNotFoundException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 
@@ -20,6 +22,7 @@ import java.util.List;
 public class BookService {
     private final BookRepository bookRepository;
     private final CopyRepository copyRepository;
+    private final RestTemplate restTemplate;
 
     public List<Book> getAllBooks() {
         return bookRepository.findAll();
@@ -31,6 +34,31 @@ public class BookService {
 
     public Book getBookByISBN(String isbn) {
         return bookRepository.findByIsbn(isbn).orElseThrow(() -> new NotFoundException("Book with ISBN" + isbn + " does not exist"));
+    }
+
+    public void addBookWithIsbn(String isbn) {
+        String url = "http://openlibrary.org/api/volumes/brief/isbn/" + isbn + ".json";
+        String jsonResponse = restTemplate.getForObject(url, String.class);
+        Book book = mapToBook(jsonResponse, isbn);
+        bookRepository.save(book);
+    }
+
+    private Book mapToBook(String jsonResponse, String isbn) {
+        try {
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode rootNode = objectMapper.readTree(jsonResponse);
+
+            JsonNode bookData = rootNode.path("records").elements().next();
+            JsonNode bookInfo = bookData.path("data");
+
+            String title = bookInfo.path("title").asText();
+            String author = bookInfo.path("authors").get(0).path("name").asText();
+
+            return new Book(title, author, isbn);
+        } catch (Exception e) {
+            throw new RuntimeException("Couldn't get the response.", e);
+        }
     }
 
     public List<Book> getBooksByAuthor(String author) {

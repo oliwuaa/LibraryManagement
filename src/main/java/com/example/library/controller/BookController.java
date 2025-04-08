@@ -1,6 +1,7 @@
 package com.example.library.controller;
 
 import com.example.library.dto.BookDTO;
+import com.example.library.exception.NotFoundException;
 import com.example.library.model.Book;
 import com.example.library.service.BookService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -61,12 +62,12 @@ public class BookController {
                             examples = @ExampleObject(
                                     name = "New Book",
                                     value = """
-                                        {
-                                          "title": "The Hobbit",
-                                          "author": "J.R.R. Tolkien",
-                                          "isbn": "9780261102217"
-                                        }
-                                        """
+                                            {
+                                              "title": "The Hobbit",
+                                              "author": "J.R.R. Tolkien",
+                                              "isbn": "9780261102217"
+                                            }
+                                            """
                             )
                     )
             )
@@ -74,6 +75,53 @@ public class BookController {
     ) {
         bookService.addBook(book);
         return ResponseEntity.ok("Book added successfully");
+    }
+
+    @Operation(summary = "Add a new book using API.", description = "Adds a new book to the system by providing the ISBN. The book will be saved to the database.")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Book added successfully",
+                    content = @Content(
+                            mediaType = "text/plain",
+                            schema = @Schema(example = "Book added successfully")
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "A book with this ISBN has already been added.",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(example = "{\"error\": \"A book with this ISBN already exists in the database\"}")
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Book not found",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(example = "{\"error\": \"Book with this ISBN does not exist\"}")
+                    )
+            )
+    })
+    @PostMapping("/{isbn}")
+    public ResponseEntity<String> addBook(
+            @Parameter(description = "ISBN of the book", example = "9781984896391")
+            @PathVariable String isbn) {
+        try {
+            bookService.addBookWithIsbn(isbn);
+
+            return ResponseEntity.ok("Book added successfully");
+
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(400).body("{\"error\": \"A book with this ISBN already exists in the database\"}");
+
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(404).body("{\"error\": \"Book with this ISBN does not exist\"}");
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("{\"error\": \"An unexpected error occurred: " + e.getMessage() + "\"}");
+        }
     }
 
 
@@ -127,7 +175,6 @@ public class BookController {
         bookService.updateBook(bookId, title, author, isbn);
         return ResponseEntity.ok("Book updated successfully");
     }
-
 
 
     @Operation(

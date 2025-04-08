@@ -23,4 +23,10 @@ public class Book {
     @Column(unique = true, nullable = false)
     private String isbn;
 
+    public Book(String title, String author, String isbn) {
+        this.isbn = isbn;
+        this.title = title;
+        this.author = author;
+    }
+
 }
