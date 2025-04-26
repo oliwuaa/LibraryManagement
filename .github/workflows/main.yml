@@ -2,6 +2,13 @@ name: Build
 
 on:
   push:
+    branches:
+      - main
+      - docker-setup-login
+  pull_request:
+    branches:
+      - main
+      - docker-setup-login
 
 jobs:
   build:
@@ -10,16 +17,26 @@ jobs:
     steps:
     - name: Checkout sources
       uses: actions/checkout@v4
+      
     - name: Setup Java
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
         java-version: 17
+
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v4
-      
+
     - name: Give execute permission to gradlew
-      run: chmod +x gradlew 
-      
-    - name: Build with Gradle
+      run: chmod +x gradlew
+
+    - name: Build project with Gradle
       run: ./gradlew build
+
+    - name: Build and run Docker Compose
+      run: docker-compose up --build -d
+      env:
+        DB_USER: ${{ secrets.DB_USER }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+        GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
