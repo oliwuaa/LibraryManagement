@@ -28,11 +28,36 @@ Projekt został zbudowany przy użyciu:
 git clone https://github.com/oliwuaa/LibraryManagement
 cd LibraryManagement
 ```
-### 2️⃣ Uruchomienie aplikacji
+### 2️⃣ Przełączanie na odpowiednią gałąź
+
+Na gałęzi main projekt nie zawiera jeszcze konfiguracji Docker, więc jeśli chcesz pracować z Dockerem, musisz przełączyć się na odpowiednią gałąź - docker-setup-login.
+
+Aby przejść na gałąź docker-setup-login, użyj polecenia:
 
 ```bash
-set SPRING_PROFILES_ACTIVE=dev
-./gradlew bootRun
+git checkout docker-setup-login
+```
+
+### 3️⃣ Konfiguracja środowiska
+
+Przed uruchomieniem aplikacji, musisz skonfigurować zmienne środowiskowe, które zawierają dane do logowania oraz klucze aplikacji:
+Utwórz plik .env w katalogu głównym projektu i dodaj do niego następujące zmienne:
+
+```bash
+DB_USER=your_database_user
+DB_PASSWORD=your_database_password
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+```
+
+### 4️⃣ Uruchomienie aplikacji z Dockerem
+
+Jeśli chcesz uruchomić aplikację z wykorzystaniem Docker i Docker Compose, wykonaj następujące kroki:
+Zbuduj i uruchom aplikację z Docker Compose:
+W terminalu, w katalogu głównym projektu, uruchom polecenie:
+
+```bash
+docker-compose up --build -d
 ```
 
 Aplikacja będzie dostępna pod adresem: [http://localhost:8080](http://localhost:8080)
