@@ -2,14 +2,12 @@ package com.example.library.service;
 
 import com.example.library.exception.BadRequestException;
 import com.example.library.exception.NotFoundException;
-import com.example.library.model.Book;
-import com.example.library.model.Copy;
-import com.example.library.model.CopyStatus;
-import com.example.library.model.Library;
+import com.example.library.model.*;
 import com.example.library.repository.*;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,6 +17,7 @@ import java.util.List;
 public class CopyService {
 
     private final CopyRepository copyRepository;
+    private final UserRepository userRepository;
     private final LibraryRepository libraryRepository;
     private final BookRepository bookRepository;
     private final LoanRepository loanRepository;
@@ -64,11 +63,18 @@ public class CopyService {
 
     @Transactional
     public void addCopy(Long bookId, Long libraryId) {
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new NotFoundException("Book with ID " + bookId + " does not exist"));
 
         Library library = libraryRepository.findById(libraryId)
                 .orElseThrow(() -> new NotFoundException("Library with ID " + libraryId + " does not exist"));
+
 
         Copy copy = Copy.builder()
                 .book(book)

@@ -1,0 +1,11 @@
+LIBRARIAN EXAMPLE
+email:librarian@example.com
+password:librarian
+
+USER EXAMPLE
+email: user@example.com
+password: user
+
+ADMIN EXAMPLE
+email: admin@example.com
+password: admin

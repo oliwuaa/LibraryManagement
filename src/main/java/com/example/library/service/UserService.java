@@ -1,6 +1,7 @@
 package com.example.library.service;
 
 import com.example.library.dto.UserDTO;
+import com.example.library.dto.UserInfoDTO;
 import com.example.library.dto.UserRegistrationDTO;
 import com.example.library.exception.BadRequestException;
 import com.example.library.exception.NotFoundException;
@@ -12,6 +13,10 @@ import com.example.library.repository.UserRepository;
 import com.example.library.specification.UserSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 
@@ -23,24 +28,63 @@ import java.util.List;
 public class UserService {
     private final UserRepository userRepository;
     private final LibraryRepository libraryRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public List<UserInfoDTO> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(user -> new UserInfoDTO(
+                        user.getId(),
+                        user.getEmail(),
+                        user.getName(),
+                        user.getSurname(),
+                        user.getRole().name(),
+                        user.getLibrary() != null ? user.getLibrary().getId() : null
+                ))
+                .toList();
     }
 
-    public User getUserById(Long userId) {
-        return userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User with ID " + userId + " does not exist"));
+    public UserInfoDTO getUserById(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User with ID " + userId + " does not exist"));
+
+        return new UserInfoDTO(
+                user.getId(),
+                user.getEmail(),
+                user.getName(),
+                user.getSurname(),
+                user.getRole().name(),
+                user.getLibrary() != null ? user.getLibrary().getId() : null
+        );
     }
 
-    public List<User> getUsersByRole(UserRole role) {
-        return userRepository.findByRole(role);
+    public List<UserInfoDTO> getUsersByRole(UserRole role) {
+
+        return userRepository.findByRole(role).stream()
+                .map(user -> new UserInfoDTO(
+                        user.getId(),
+                        user.getEmail(),
+                        user.getName(),
+                        user.getSurname(),
+                        user.getRole().name(),
+                        user.getLibrary() != null ? user.getLibrary().getId() : null
+                ))
+                .toList();
     }
 
-    public List<User> getLibrariansFromLibrary(Long libraryId) {
+    public List<UserInfoDTO> getLibrariansFromLibrary(Long libraryId) {
         if (!libraryRepository.existsById(libraryId)) {
             throw new NotFoundException("Library with ID " + libraryId + " does not exist");
         }
-        return userRepository.findByRoleAndLibraryId(UserRole.LIBRARIAN, libraryId);
+        return userRepository.findByRoleAndLibraryId(UserRole.LIBRARIAN, libraryId).stream()
+                .map(user -> new UserInfoDTO(
+                        user.getId(),
+                        user.getEmail(),
+                        user.getName(),
+                        user.getSurname(),
+                        user.getRole().name(),
+                        user.getLibrary() != null ? user.getLibrary().getId() : null
+                ))
+                .toList();
     }
 
     public void addUser(UserRegistrationDTO user, Long libraryId) {
@@ -64,7 +108,7 @@ public class UserService {
 
 
         newUser.setEmail(user.email());
-        newUser.setPassword(user.password());
+        newUser.setPassword(passwordEncoder.encode(user.password()));
         newUser.setRole(user.role());
         if (user.name() != null) {
             newUser.setName(user.name());
@@ -73,6 +117,7 @@ public class UserService {
             newUser.setSurname(user.surname());
         }
 
+        System.out.println("Saving user: " + newUser);
         userRepository.save(newUser);
     }
 
@@ -121,7 +166,6 @@ public class UserService {
             user.setRole(role);
             user.setLibrary(library);
         }
-
         userRepository.save(user);
     }
 
@@ -133,7 +177,13 @@ public class UserService {
         userRepository.deleteById(userId);
     }
 
-    public List<User> searchUsers(String name, String email, UserRole role) {
+    public List<UserInfoDTO> searchUsers(String name, String email, UserRole role) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String mail = authentication.getName();
+
+        User currentUser = userRepository.findByEmail(mail)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
         Specification<User> spec = Specification.where(null);
 
         if (name != null && !name.isBlank()) {
@@ -148,6 +198,29 @@ public class UserService {
             spec = spec.and(UserSpecification.hasRole(role));
         }
 
-        return userRepository.findAll(spec);
+        if (currentUser.getRole() == UserRole.LIBRARIAN) {
+            return userRepository.findAll(spec).stream()
+                    .filter(r -> r.getLibrary().getId()
+                            .equals(currentUser.getLibrary().getId()))
+                    .map(user -> new UserInfoDTO(
+                            user.getId(),
+                            user.getEmail(),
+                            user.getName(),
+                            user.getSurname(),
+                            user.getRole().name(),
+                            user.getLibrary() != null ? user.getLibrary().getId() : null
+                    ))
+                    .toList();
+        }
+        return userRepository.findAll(spec).stream()
+                .map(user -> new UserInfoDTO(
+                        user.getId(),
+                        user.getEmail(),
+                        user.getName(),
+                        user.getSurname(),
+                        user.getRole().name(),
+                        user.getLibrary() != null ? user.getLibrary().getId() : null
+                ))
+                .toList();
     }
 }

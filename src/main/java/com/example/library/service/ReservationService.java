@@ -1,5 +1,6 @@
 package com.example.library.service;
 
+import com.example.library.dto.ReservationDTO;
 import com.example.library.exception.BadRequestException;
 import com.example.library.exception.NotFoundException;
 import com.example.library.model.*;
@@ -7,6 +8,9 @@ import com.example.library.repository.CopyRepository;
 import com.example.library.repository.ReservationRepository;
 import com.example.library.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,33 +23,64 @@ public class ReservationService {
     private final CopyRepository copyRepository;
     private final UserRepository userRepository;
 
-    public List<Reservation> getAllReservations() {
-        return reservationRepository.findAll();
+    public List<ReservationDTO> getAllReservations() {
+        return reservationRepository.findAll().stream()
+                .map(reservation -> new ReservationDTO(
+                        reservation.getId(),
+                        reservation.getUser().getId(),
+                        reservation.getCopy().getId(),
+                        reservation.getCreatedAt(),
+                        reservation.getExpirationDate(),
+                        reservation.getStatus()
+                ))
+                .toList();
     }
 
-    public List<Reservation> getUserAllReservations(Long userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new NotFoundException("User with ID " + userId + " does not exist");
-        }
+    public List<ReservationDTO> getUserAllReservations(Long userId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
 
-        return reservationRepository.findAllByUserId(userId);
+        User currentUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        return reservationRepository.findAllByUserId(userId).stream()
+                .map(reservation -> new ReservationDTO(
+                        reservation.getId(),
+                        reservation.getUser().getId(),
+                        reservation.getCopy().getId(),
+                        reservation.getCreatedAt(),
+                        reservation.getExpirationDate(),
+                        reservation.getStatus()
+                ))
+                .toList();
     }
 
-    public Reservation getReservationById(Long reservationId) {
-        return reservationRepository.findById(reservationId)
+    public ReservationDTO getReservationById(Long reservationId) {
+        Reservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new NotFoundException("Reservation with ID " + reservationId + " does not exist"));
+
+        return new ReservationDTO(
+                reservation.getId(),
+                reservation.getUser().getId(),
+                reservation.getCopy().getId(),
+                reservation.getCreatedAt(),
+                reservation.getExpirationDate(),
+                reservation.getStatus()
+        );
     }
 
-    public void reserveCopy(Long userId, Long copyId) {
+    public void reserveCopy(Long copyId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         Copy copy = copyRepository.findById(copyId)
                 .orElseThrow(() -> new NotFoundException("Copy not found!"));
 
         if (copy.getStatus() != CopyStatus.AVAILABLE) {
             throw new BadRequestException("Copy is not available for reservation!");
         }
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User with ID " + userId + " does not exist"));
 
         copy.setStatus(CopyStatus.RESERVED);
         copyRepository.save(copy);
@@ -77,7 +112,6 @@ public class ReservationService {
         copyRepository.save(copy);
     }
 
-
     public void expiredReservations() {
         List<Reservation> expiredReservations = reservationRepository.findAllByExpirationDateBeforeAndStatus(LocalDateTime.now(), ReservationStatus.WAITING);
 
@@ -90,6 +124,4 @@ public class ReservationService {
             copyRepository.save(copy);
         }
     }
-
-
 }

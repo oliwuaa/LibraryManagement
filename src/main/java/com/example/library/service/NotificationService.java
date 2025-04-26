@@ -4,11 +4,13 @@ import com.example.library.model.Loan;
 import com.example.library.model.Reservation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.stereotype.Service;
 import org.springframework.mail.javamail.JavaMailSender;
 
+@Profile("mail")
 @Service
 @RequiredArgsConstructor
 public class NotificationService {

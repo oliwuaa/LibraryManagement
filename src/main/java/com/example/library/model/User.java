@@ -1,5 +1,6 @@
 package com.example.library.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,17 +20,24 @@ public class User {
     )
     private Long id;
 
+    @JsonIgnore
     @Column(nullable = false)
     private String password;
+
     @Column(unique = true, nullable = false)
     private String email;
+
     @Column
     private String name;
+
     @Column
     private String surname;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserRole role;
+
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "library_id")
     private Library library;

@@ -1,5 +1,6 @@
 package com.example.library.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,6 +22,7 @@ public class Copy {
     @JoinColumn(name = "book_id", nullable = false)
     private Book book;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "library_id", nullable = false)
     private Library library;
@@ -28,5 +30,4 @@ public class Copy {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CopyStatus status;
-
 }

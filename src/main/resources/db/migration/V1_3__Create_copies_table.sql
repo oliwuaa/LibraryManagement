@@ -1,5 +1,5 @@
 CREATE TABLE copies (
-                        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                        id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
                         book_id BIGINT NOT NULL,
                         library_id BIGINT NOT NULL,
                         status VARCHAR(50) NOT NULL,

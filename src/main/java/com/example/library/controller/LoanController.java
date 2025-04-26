@@ -1,5 +1,6 @@
 package com.example.library.controller;
 
+import com.example.library.dto.LoanDTO;
 import com.example.library.model.Loan;
 import com.example.library.service.LoanService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -43,8 +45,9 @@ public class LoanController {
             )
     })
     @GetMapping
-    public ResponseEntity<List<Loan>> getAllLoans() {
-        List<Loan> loans = loanService.getAllLoans();
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    public ResponseEntity<List<LoanDTO>> getAllLoans() {
+        List<LoanDTO> loans = loanService.getAllLoans();
         if (loans.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
@@ -79,12 +82,15 @@ public class LoanController {
                     )
             )
     })
-    @GetMapping("users/{userId}")
-    public ResponseEntity<List<Loan>> getUserLoans(
+    @PreAuthorize("hasRole('ADMIN') or " +
+            "(hasRole('LIBRARIAN') and @authorizationService.isUserInLibrarianLibrary(#userId)) or " +
+            "(hasRole('USER') and @authorizationService.isSelf(#userId))")
+    @GetMapping("user/{userId}") //add the option, that librarian can't loan a book
+    public ResponseEntity<List<LoanDTO>> getUserLoans(
             @Parameter(description = "ID of the user whose loans will be fetched", example = "5")
             @PathVariable Long userId
     ) {
-        List<Loan> loans = loanService.getAllUserLoan(userId);
+        List<LoanDTO> loans = loanService.getAllUserLoan(userId);
         if (loans.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
@@ -114,7 +120,10 @@ public class LoanController {
             )
     })
     @GetMapping("/{loanId}")
-    public ResponseEntity<Loan> getLoanById(
+    @PreAuthorize("hasRole('ADMIN') or " +
+            "hasRole('USER') and @authorizationService.isUserLoan(#loanId) or " +
+            "(hasRole('LIBRARIAN') and @authorizationService.isLoanInLibrarianLibrary(#loanId))")
+    public ResponseEntity<LoanDTO> getLoanById(
             @Parameter(description = "ID of the loan to fetch", example = "10")
             @PathVariable Long loanId
     ) {
@@ -157,6 +166,8 @@ public class LoanController {
             )
     })
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN') or " +
+            "(hasRole('LIBRARIAN') and @authorizationService.isCopyInLibrarianLibrary(#copyId))")
     public ResponseEntity<String> createLoan(
             @Parameter(description = "ID of the user borrowing the book", example = "5") @RequestParam Long userId,
             @Parameter(description = "ID of the book copy being borrowed", example = "12") @RequestParam Long copyId
@@ -164,7 +175,6 @@ public class LoanController {
         loanService.borrowBook(userId, copyId);
         return ResponseEntity.ok("Book borrowed successfully");
     }
-
 
     @Operation(
             summary = "Return a borrowed book.",
@@ -190,6 +200,8 @@ public class LoanController {
             )
     })
     @PostMapping("/{loanId}/return")
+    @PreAuthorize("hasRole('ADMIN') or " +
+            "(hasRole('LIBRARIAN') and @authorizationService.isLoanInLibrarianLibrary(#loanId))")
     public ResponseEntity<String> returnBook(
             @Parameter(description = "ID of the loan to return", example = "1")
             @PathVariable Long loanId
@@ -197,7 +209,6 @@ public class LoanController {
         loanService.returnBook(loanId);
         return ResponseEntity.ok("Book returned successfully");
     }
-
 
     @Operation(
             summary = "Extend a loan.",
@@ -235,6 +246,8 @@ public class LoanController {
             )
     })
     @PostMapping("/{loanId}/extend")
+    @PreAuthorize("hasRole('ADMIN') or " +
+            "(hasRole('LIBRARIAN') and @authorizationService.isLoanInLibrarianLibrary(#loanId))")
     public ResponseEntity<String> extendLoan(
             @Parameter(description = "ID of the loan to extend", example = "10")
             @PathVariable Long loanId,
@@ -245,5 +258,4 @@ public class LoanController {
         loanService.extendLoan(returnDate, loanId);
         return ResponseEntity.ok("Loan extended successfully");
     }
-
 }

@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -43,6 +44,7 @@ public class CopyController {
             )
     })
     @GetMapping
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN', 'USER')")
     public ResponseEntity<List<Copy>> getAllCopies() {
         List<Copy> copies = copyService.getAllCopies();
         if (copies.isEmpty()) {
@@ -71,6 +73,7 @@ public class CopyController {
             )
     })
     @GetMapping("/available")
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN', 'USER')")
     public ResponseEntity<List<Copy>> getAllAvailableCopies() {
         List<Copy> copies = copyService.getAvailableCopies();
         if (copies.isEmpty()) {
@@ -79,7 +82,6 @@ public class CopyController {
 
         return ResponseEntity.ok(copies);
     }
-
 
     @Operation(
             summary = "Get copy by ID.",
@@ -104,6 +106,7 @@ public class CopyController {
             )
     })
     @GetMapping("/{copyId}")
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN', 'USER')")
     public ResponseEntity<Copy> getCopyById(
             @Parameter(description = "ID of the copy to retrieve", example = "5")
             @PathVariable Long copyId
@@ -138,6 +141,8 @@ public class CopyController {
             )
     })
     @PostMapping("/{bookId}/{libraryId}")
+    @PreAuthorize("hasRole('ADMIN') or " +
+            "hasRole('LIBRARIAN') and @authorizationService.isLibrarianOfLibrary(#libraryId) ")
     public ResponseEntity<String> addCopy(
             @Parameter(description = "ID of the book", example = "1")
             @PathVariable Long bookId,
@@ -184,6 +189,8 @@ public class CopyController {
     })
 
     @PutMapping("/{copyId}")
+    @PreAuthorize("hasRole('ADMIN') or " +
+            "hasRole('LIBRARIAN') and @authorizationService.isCopyInLibrarianLibrary(#copyId)")
     public ResponseEntity<String> changeStatus(
             @Parameter(description = "ID of the copy to update", example = "1")
             @PathVariable Long copyId,
@@ -226,6 +233,8 @@ public class CopyController {
             )
     })
     @DeleteMapping("/{copyId}")
+    @PreAuthorize("hasRole('ADMIN') or " +
+            "hasRole('LIBRARIAN') and @authorizationService.isCopyInLibrarianLibrary(#copyId) ")
     public ResponseEntity<String> deleteCopy(
             @Parameter(description = "ID of the copy to delete", example = "1")
             @PathVariable Long copyId
@@ -262,6 +271,7 @@ public class CopyController {
             )
     })
     @GetMapping("/library/{libraryId}")
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN', 'USER')")
     public ResponseEntity<List<Copy>> getCopiesByLibrary(
             @Parameter(description = "ID of the library", example = "1")
             @PathVariable Long libraryId
@@ -301,6 +311,7 @@ public class CopyController {
             )
     })
     @GetMapping("/book/{bookId}")
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN', 'USER')")
     public ResponseEntity<List<Copy>> getCopiesByBook(
             @Parameter(description = "ID of the book", example = "1")
             @PathVariable Long bookId
@@ -311,5 +322,4 @@ public class CopyController {
         }
         return ResponseEntity.ok(copies);
     }
-
 }

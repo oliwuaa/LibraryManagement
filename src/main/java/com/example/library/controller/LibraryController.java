@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -45,12 +46,12 @@ public class LibraryController {
             )
     })
     @GetMapping
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN', 'USER')")
     public ResponseEntity<List<Library>> getAllLibraries() {
         List<Library> libraries = libraryService.getAllLibraries();
         if (libraries.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-
         return ResponseEntity.ok(libraries);
     }
 
@@ -77,13 +78,13 @@ public class LibraryController {
             )
     })
     @GetMapping("/{libraryId}")
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN', 'USER')")
     public ResponseEntity<Library> getLibraryById(
             @Parameter(description = "ID of the library to retrieve", example = "6")
             @PathVariable("libraryId") Long libraryID
     ) {
         return ResponseEntity.ok(libraryService.getLibraryById(libraryID));
     }
-
 
     @Operation(
             summary = "Add a new library.",
@@ -108,6 +109,7 @@ public class LibraryController {
             )
     })
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<String> addLibrary(@RequestBody LibraryDTO library) {
         libraryService.addLibrary(library);
         return ResponseEntity.ok("Library added successfully");
@@ -139,6 +141,7 @@ public class LibraryController {
             )
     })
     @DeleteMapping("/{libraryId}")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<String> deleteLibrary(@PathVariable Long libraryId) {
         boolean deleted = libraryService.deleteLibrary(libraryId);
 
@@ -148,7 +151,6 @@ public class LibraryController {
             return ResponseEntity.ok("Library could not be deleted due to active loans or reservations. Status set to CLOSED.");
         }
     }
-
 
     @Operation(
             summary = "Update a library.",
@@ -181,6 +183,7 @@ public class LibraryController {
             )
     })
     @PutMapping("/{libraryId}")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<String> updateLibrary(
             @Parameter(description = "ID of the library to update", example = "5")
             @PathVariable Long libraryId,
@@ -189,7 +192,6 @@ public class LibraryController {
         libraryService.updateLibrary(libraryId, library);
         return ResponseEntity.ok("Library updated successfully");
     }
-
 
     @Operation(
             summary = "Get libraries using search criteria.",
@@ -219,6 +221,7 @@ public class LibraryController {
             )
     })
     @GetMapping("/search")
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN', 'USER')")
     public ResponseEntity<List<Library>> searchLibraries(
             @Parameter(description = "Partial or full name of the library", example = "Central")
             @RequestParam(required = false) String name,
@@ -233,5 +236,4 @@ public class LibraryController {
 
         return ResponseEntity.ok(libraries);
     }
-
 }

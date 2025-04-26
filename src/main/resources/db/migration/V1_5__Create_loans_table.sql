@@ -1,5 +1,5 @@
 CREATE TABLE loans (
-                       id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                       id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
                        user_id BIGINT NOT NULL,
                        copy_id BIGINT NOT NULL,
                        start_date DATE NOT NULL,

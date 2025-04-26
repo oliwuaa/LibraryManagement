@@ -43,16 +43,3 @@ VALUES
     ('readbooks', 'kevin.scott@example.com', 'Kevin', 'Scott', 'USER', NULL),
     ('ilovebooks', 'barbara.green@example.com', 'Barbara', 'Green', 'LIBRARIAN', 2),
     ('letmeinplz', 'steven.adams@example.com', 'Steven', 'Adams', 'USER', NULL);
-
-
--- Dodanie przykładowych wypożyczeń
-INSERT INTO loans (user_id, copy_id, start_date, end_date, return_date)
-VALUES
-    (1, 1, '2025-03-01', '2025-03-10', '2025-03-08'),
-    (3, 2, '2025-03-05', '2025-03-15', NULL);
-
--- Dodanie przykładowych rezerwacji
-INSERT INTO reservations (user_id, copy_id, created_at, expiration_date, status)
-VALUES
-    (1, 4, '2025-03-02 10:00:00', '2025-03-09 10:00:00', 'WAITING'),
-    (2, 2, '2025-03-03 14:30:00', '2025-03-10 14:30:00', 'CANCELLED');

@@ -1,6 +1,7 @@
 package com.example.library.controller;
 
 import com.example.library.dto.UserDTO;
+import com.example.library.dto.UserInfoDTO;
 import com.example.library.dto.UserRegistrationDTO;
 import com.example.library.model.User;
 import com.example.library.model.UserRole;
@@ -15,6 +16,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -42,8 +44,9 @@ public class UserController {
             )
     })
     @GetMapping
-    public ResponseEntity<List<User>> getAllUsers() {
-        List<User> users = userService.getAllUsers();
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    public ResponseEntity<List<UserInfoDTO>> getAllUsers() {
+        List<UserInfoDTO> users = userService.getAllUsers();
         if (users.isEmpty()) return ResponseEntity.noContent().build();
         return ResponseEntity.ok(users);
     }
@@ -60,36 +63,36 @@ public class UserController {
                                     name = "USER",
                                     description = "User with role USER (no library assigned)",
                                     value = """
-                                                {
-                                                    "id": 0,
-                                                    "password": "string",
-                                                    "email": "string",
-                                                    "name": "string",
-                                                    "surname": "string",
-                                                    "role": "USER",
-                                                    "library": null
-                                                }
-                                                """
+                                            {
+                                                "id": 0,
+                                                "password": "string",
+                                                "email": "string",
+                                                "name": "string",
+                                                "surname": "string",
+                                                "role": "USER",
+                                                "library": null
+                                            }
+                                            """
                             ),
                             @ExampleObject(
                                     name = "LIBRARIAN",
                                     description = "User with role LIBRARIAN (has library assigned)",
                                     value = """
-                                                {
-                                                    "id": 0,
-                                                    "password": "string",
-                                                    "email": "string",
-                                                    "name": "string",
-                                                    "surname": "string",
-                                                    "role": "LIBRARIAN",
-                                                    "library": {
-                                                      "id": 0,
-                                                      "name": "string",
-                                                      "address": "string",
-                                                      "status": "ACTIVE"
-                                                    }
+                                            {
+                                                "id": 0,
+                                                "password": "string",
+                                                "email": "string",
+                                                "name": "string",
+                                                "surname": "string",
+                                                "role": "LIBRARIAN",
+                                                "library": {
+                                                  "id": 0,
+                                                  "name": "string",
+                                                  "address": "string",
+                                                  "status": "ACTIVE"
                                                 }
-                                                """
+                                            }
+                                            """
                             )
                     }
             )),
@@ -99,7 +102,10 @@ public class UserController {
             ))
     })
     @GetMapping("/{userId}")
-    public ResponseEntity<User> getUserById(
+    @PreAuthorize("hasRole('ADMIN') or " +
+            "(hasRole('LIBRARIAN') and @authorizationService.isUserInLibrarianLibrary(#userId)) or " +
+            "hasAnyRole('USER','LIBRARIAN') and @authorizationService.isSelf(#userId) ")
+    public ResponseEntity<UserInfoDTO> getUserById(
             @Parameter(description = "ID of the user to fetch", example = "6")
             @PathVariable Long userId
     ) {
@@ -138,11 +144,12 @@ public class UserController {
             )
     })
     @GetMapping("/role/{role}")
-    public ResponseEntity<List<User>> getUsersByRole(
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    public ResponseEntity<List<UserInfoDTO>> getUsersByRole(
             @Parameter(description = "Role of the users to retrieve", example = "USER")
             @PathVariable UserRole role
     ) {
-        List<User> users = userService.getUsersByRole(role);
+        List<UserInfoDTO> users = userService.getUsersByRole(role);
 
         if (users.isEmpty()) {
             return ResponseEntity.noContent().build();
@@ -179,11 +186,12 @@ public class UserController {
             )
     })
     @GetMapping("/library/{libraryId}/librarians")
-    public ResponseEntity<List<User>> getLibrariansByLibraryId(
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    public ResponseEntity<List<UserInfoDTO>> getLibrariansByLibraryId(
             @Parameter(description = "ID of the library", example = "3")
             @PathVariable Long libraryId
     ) {
-        List<User> librarians = userService.getLibrariansFromLibrary(libraryId);
+        List<UserInfoDTO> librarians = userService.getLibrariansFromLibrary(libraryId);
 
         if (librarians.isEmpty()) {
             return ResponseEntity.noContent().build();
@@ -194,7 +202,7 @@ public class UserController {
 
     @Operation(
             summary = "Register a user.",
-            description = "Registers a user. If registering a librarian, you must provide a valid library ID via query parameter `libraryId`."
+            description = "Registers a user. If registering a librarian, you must provide a valid library ID via query parameter libraryId."
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -232,6 +240,7 @@ public class UserController {
             )
     })
     @PostMapping
+    @PreAuthorize("hasAnyRole('LIBRARIAN','ADMIN','USER')")
     public ResponseEntity<String> registerUser(
             @RequestBody UserRegistrationDTO user,
             @Parameter(description = "Library ID to assign when role is LIBRARIAN", example = "3")
@@ -247,9 +256,9 @@ public class UserController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User updated successfully", content = @Content(
-                            mediaType = "text/plain",
-                            schema = @Schema(example = "User updated successfully")
-                    )
+                    mediaType = "text/plain",
+                    schema = @Schema(example = "User updated successfully")
+            )
             ),
             @ApiResponse(responseCode = "400", description = "Bad request", content = @Content(
                     mediaType = "application/json",
@@ -261,6 +270,7 @@ public class UserController {
             ))
     })
     @PutMapping("/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> updateUser(
             @Parameter(description = "ID of the user to update", example = "6")
             @PathVariable Long userId,
@@ -305,6 +315,7 @@ public class UserController {
             )
     })
     @PatchMapping("/{userId}")
+    @PreAuthorize("hasRole( 'ADMIN')")
     public ResponseEntity<String> changeRole(
             @Parameter(description = "ID of the user to change the role", example = "6")
             @PathVariable Long userId,
@@ -334,6 +345,7 @@ public class UserController {
             ))
     })
     @DeleteMapping("/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteUser(
             @Parameter(description = "ID of the user to be deleted", example = "6")
             @PathVariable Long userId
@@ -369,8 +381,9 @@ public class UserController {
                     )
             )
     })
-    @GetMapping("/search")
-    public ResponseEntity<List<User>> getUsersBySearchCriteria(
+    @GetMapping("/search") // to be changed - librarian should only see the results from his library
+    @PreAuthorize("hasAnyRole('ADMIN','LIBRARIAN')")
+    public ResponseEntity<List<UserInfoDTO>> getUsersBySearchCriteria(
             @Parameter(description = "Filter by user's name (partial match)", example = "John")
             @RequestParam(required = false) String name,
 
@@ -380,11 +393,10 @@ public class UserController {
             @Parameter(description = "Filter by user role (exact match)", example = "LIBRARIAN")
             @RequestParam(required = false) UserRole role
     ) {
-        List<User> users = userService.searchUsers(name, email, role);
+        List<UserInfoDTO> users = userService.searchUsers(name, email, role);
         if (users.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(users);
     }
-
 }

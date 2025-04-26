@@ -14,6 +14,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,6 +27,7 @@ import java.util.List;
 public class BookController {
     private final BookService bookService;
 
+    // to delete
     @Operation(
             summary = "Add a new book.",
             description = "Adds a new book to the system by providing the title, author, and ISBN. The book will be saved to the database."
@@ -52,6 +56,7 @@ public class BookController {
             )
     })
     @PostMapping
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
     public ResponseEntity<String> addBook(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Book details including title, author, and ISBN",
@@ -105,6 +110,7 @@ public class BookController {
             )
     })
     @PostMapping("/{isbn}")
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
     public ResponseEntity<String> addBook(
             @Parameter(description = "ISBN of the book", example = "9781984896391")
             @PathVariable String isbn) {
@@ -125,6 +131,7 @@ public class BookController {
     }
 
 
+    //to delete
     @Operation(
             summary = "Update a book.",
             description = "Updates the title, author, or ISBN of the book with the given ID. " +
@@ -162,6 +169,7 @@ public class BookController {
             )
     })
     @PatchMapping("/{bookId}")
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
     public ResponseEntity<String> updateBook(
             @Parameter(description = "ID of the book to update", example = "3")
             @PathVariable Long bookId,
@@ -209,10 +217,14 @@ public class BookController {
             )
     })
     @DeleteMapping("/{bookId}")
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
     public ResponseEntity<String> deleteBook(
             @Parameter(description = "ID of the book to delete", example = "1")
             @PathVariable Long bookId
     ) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println("Authenticated User: " + authentication.getName());
+        System.out.println("User Roles: " + authentication.getAuthorities());
         bookService.deleteBook(bookId);
         return ResponseEntity.ok("Book deleted successfully");
     }
@@ -237,6 +249,7 @@ public class BookController {
             )
     })
     @GetMapping
+    @PreAuthorize("hasAnyRole('USER', 'LIBRARIAN', 'ADMIN')")
     public ResponseEntity<List<Book>> getAllBooks() {
         List<Book> books = bookService.getAllBooks();
         if (books.isEmpty()) {
@@ -268,6 +281,7 @@ public class BookController {
             )
     })
     @GetMapping("/{bookId}")
+    @PreAuthorize("hasAnyRole('USER', 'LIBRARIAN', 'ADMIN')")
     public ResponseEntity<Book> getBookById(
             @Parameter(description = "ID of the book to retrieve", example = "5")
             @PathVariable Long bookId
@@ -295,6 +309,7 @@ public class BookController {
                     content = @Content()
             )
     })
+    @PreAuthorize("hasAnyRole('USER', 'LIBRARIAN', 'ADMIN')")
     @GetMapping("/search")
     public ResponseEntity<List<Book>> getBooksBySearchCriteria(
             @Parameter(description = "Title to search for", example = "The Great Gatsby")
@@ -310,6 +325,4 @@ public class BookController {
         }
         return ResponseEntity.ok(books);
     }
-
 }
-

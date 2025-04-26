@@ -1,5 +1,6 @@
 package com.example.library.controller;
 
+import com.example.library.dto.ReservationDTO;
 import com.example.library.model.Reservation;
 import com.example.library.service.ReservationService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,7 +22,6 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("reservations")
 public class ReservationController {
-
     private final ReservationService reservationService;
 
     @Operation(
@@ -46,27 +47,25 @@ public class ReservationController {
             ),
             @ApiResponse(
                     responseCode = "404",
-                    description = "User or copy not found",
+                    description = "Copy not found or user not found in the system",
                     content = @Content(
                             mediaType = "application/json",
                             examples = {
                                     @ExampleObject(name = "Copy Not Found", value = "{\"error\": \"Copy not found!\"}"),
-                                    @ExampleObject(name = "User Not Found", value = "{\"error\": \"User with ID 99 does not exist\"}")
+                                    @ExampleObject(name = "User Not Found", value = "{\"error\": \"User not found\"}")
                             }
                     )
             )
     })
     @PostMapping
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<String> makeBookReservation(
-            @Parameter(description = "ID of the user making the reservation", example = "1")
-            @RequestParam Long userId,
             @Parameter(description = "ID of the copy to reserve", example = "3")
             @RequestParam Long copyId
     ) {
-        reservationService.reserveCopy(userId, copyId);
+        reservationService.reserveCopy(copyId);
         return ResponseEntity.ok("Reservation made successfully");
     }
-
 
     @Operation(
             summary = "Get all reservations.",
@@ -88,15 +87,14 @@ public class ReservationController {
             )
     })
     @GetMapping
-    public ResponseEntity<List<Reservation>> getReservations() {
-        List<Reservation> reservations = reservationService.getAllReservations();
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    public ResponseEntity<List<ReservationDTO>> getReservations() {
+        List<ReservationDTO> reservations = reservationService.getAllReservations();
         if (reservations.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(reservations);
     }
-
-
 
     @Operation(
             summary = "Get all user's reservations.",
@@ -125,12 +123,15 @@ public class ReservationController {
                     )
             )
     })
+    @PreAuthorize("hasRole('ADMIN') or " +
+            "hasRole('Librarian') and @authorizationService.isUserInLibrarianLibrary(#userId) or " +
+            "hasRole('USER') and @authorizationService.isSelf(#userId) ")
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Reservation>> getUserReservations(
+    public ResponseEntity<List<ReservationDTO>> getUserReservations(
             @Parameter(description = "ID of the user whose reservations are to be fetched", example = "12")
             @PathVariable Long userId
     ) {
-        List<Reservation> reservations = reservationService.getUserAllReservations(userId);
+        List<ReservationDTO> reservations = reservationService.getUserAllReservations(userId);
         if (reservations.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
@@ -160,7 +161,10 @@ public class ReservationController {
             )
     })
     @GetMapping("/{reservationId}")
-    public ResponseEntity<Reservation> getReservationById(
+    @PreAuthorize("hasRole('ADMIN') or " +
+            "hasRole('LIBRARIAN') and @authorizationService.isReservationInLibrarianLibrary(#reservationId) or " +
+            "hasRole('USER') and @authorizationService.isUserReservation(#reservationId) ")
+    public ResponseEntity<ReservationDTO> getReservationById(
             @Parameter(description = "ID of the reservation to retrieve", example = "42")
             @PathVariable Long reservationId
     ) {
@@ -198,6 +202,9 @@ public class ReservationController {
             )
     })
     @PatchMapping("/{reservationId}/cancel")
+    @PreAuthorize("hasRole('ADMIN') or " +
+            "hasRole('Librarian') and @authorizationService.isReservationInLibrarianLibrary(#reservationId) or " +
+            "hasRole('USER') and @authorizationService.isUserReservation(#reservationId) ")
     public ResponseEntity<String> cancelReservation(
             @Parameter(description = "ID of the reservation to cancel", example = "5")
             @PathVariable Long reservationId

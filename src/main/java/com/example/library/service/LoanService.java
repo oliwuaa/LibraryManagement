@@ -1,5 +1,6 @@
 package com.example.library.service;
 
+import com.example.library.dto.LoanDTO;
 import com.example.library.exception.BadRequestException;
 import com.example.library.exception.NotFoundException;
 import com.example.library.model.*;
@@ -9,6 +10,9 @@ import com.example.library.repository.ReservationRepository;
 import com.example.library.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -23,29 +27,53 @@ public class LoanService {
     private final UserRepository userRepository;
 
     private final CopyRepository copyRepository;
-private final ReservationRepository reservationRepository;
+    private final ReservationRepository reservationRepository;
 
 
-    public List<Loan> getAllLoans() {
-        return loanRepository.findAll();
+    public List<LoanDTO> getAllLoans() {
+        return loanRepository.findAll().stream()
+                .map(loan -> new LoanDTO(
+                        loan.getId(),
+                        loan.getUser().getId(),
+                        loan.getCopy().getId(),
+                        loan.getStartDate(),
+                        loan.getEndDate(),
+                        loan.getReturnDate()
+                ))
+                .toList();
     }
 
-    public List<Loan> getAllUserLoan(Long userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new NotFoundException("User with ID " + userId + " does not exist");
-        }
-        return loanRepository.findByUserId(userId);
+    public List<LoanDTO> getAllUserLoan(Long userId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User currentUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        return loanRepository.findByUserId(userId).stream()
+                .map(loan -> new LoanDTO(
+                        loan.getId(),
+                        loan.getUser().getId(),
+                        loan.getCopy().getId(),
+                        loan.getStartDate(),
+                        loan.getEndDate(),
+                        loan.getReturnDate()
+                ))
+                .toList();
     }
 
-    public Loan getLoanById(Long loanId) {
-        return loanRepository.findById(loanId)
+    public LoanDTO getLoanById(Long loanId) {
+        Loan loan = loanRepository.findById(loanId)
                 .orElseThrow(() -> new NotFoundException("Loan with ID " + loanId + " does not exist"));
-    }
 
-    public List<Loan> getUserActiveLoans(Long userId) {
-        return loanRepository.findByUserIdAndReturnDateIsNull(userId);
+        return new LoanDTO(
+                loan.getId(),
+                loan.getUser().getId(),
+                loan.getCopy().getId(),
+                loan.getStartDate(),
+                loan.getEndDate(),
+                loan.getReturnDate()
+        );
     }
-
 
     public void borrowBook(Long userId, Long copyId) {
         User user = userRepository.findById(userId)
@@ -73,7 +101,7 @@ private final ReservationRepository reservationRepository;
 
         reservationRepository.findByCopy_IdAndStatus(copyId, ReservationStatus.WAITING)
                 .ifPresent(reservation -> {
-                    reservation.setStatus(ReservationStatus.CANCELLED);
+                    reservation.setStatus(ReservationStatus.REALIZED);
                     reservationRepository.save(reservation);
                 });
     }
@@ -98,6 +126,4 @@ private final ReservationRepository reservationRepository;
         loan.setEndDate(date);
         loanRepository.save(loan);
     }
-
 }
-
