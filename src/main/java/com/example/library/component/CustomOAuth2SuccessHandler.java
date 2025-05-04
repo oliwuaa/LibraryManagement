@@ -5,7 +5,6 @@ import com.example.library.model.User;
 import com.example.library.repository.UserRepository;
 import com.example.library.service.JwtService;
 import com.example.library.service.RefreshTokenService;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +30,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
         DefaultOAuth2User oAuth2User = (DefaultOAuth2User) authentication.getPrincipal();
         String email = oAuth2User.getAttribute("email");
 
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmailAndActiveTrue(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         String accessToken = jwtService.generateToken(user);

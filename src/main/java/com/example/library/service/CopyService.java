@@ -27,10 +27,6 @@ public class CopyService {
         return copyRepository.findAll();
     }
 
-    public List<Copy> getActiveCopies() {
-        return copyRepository.findByStatusIn(List.of(CopyStatus.AVAILABLE, CopyStatus.BORROWED));
-    }
-
     public Copy getCopyById(Long copyId) {
         return copyRepository.findById(copyId).orElseThrow(() -> new NotFoundException("Copy with ID " + copyId + " does not exist"));
     }
@@ -57,6 +53,10 @@ public class CopyService {
         return copyRepository.findByBookIdAndStatus(bookId, CopyStatus.AVAILABLE);
     }
 
+    public List<Copy> getAvailableCopiesOfBookByLibrary(Long bookId, Long LibraryId) {
+        return copyRepository.findByBookIdAndLibraryIdAndStatusEquals(bookId,LibraryId,CopyStatus.AVAILABLE);
+    }
+
     public List<Copy> getAvailableCopies() {
         return copyRepository.findByStatus(CopyStatus.AVAILABLE);
     }
@@ -66,7 +66,7 @@ public class CopyService {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = auth.getName();
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmailAndActiveTrue(email)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
         Book book = bookRepository.findById(bookId)
@@ -74,7 +74,6 @@ public class CopyService {
 
         Library library = libraryRepository.findById(libraryId)
                 .orElseThrow(() -> new NotFoundException("Library with ID " + libraryId + " does not exist"));
-
 
         Copy copy = Copy.builder()
                 .book(book)
@@ -95,7 +94,6 @@ public class CopyService {
         copy.setStatus(status);
         copyRepository.save(copy);
     }
-
 
     public void deleteCopy(Long copyId) {
         Copy copy = copyRepository.findById(copyId)

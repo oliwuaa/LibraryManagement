@@ -66,7 +66,7 @@ public class AuthController {
                     new UsernamePasswordAuthenticationToken(authRequest.email(), authRequest.password())
             );
 
-            User user = userRepository.findByEmail(authRequest.email())
+            User user = userRepository.findByEmailAndActiveTrue(authRequest.email())
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
             String accessToken = jwtService.generateToken(user);
@@ -163,5 +163,4 @@ public class AuthController {
             return ResponseEntity.badRequest().build();
         }
     }
-
 }

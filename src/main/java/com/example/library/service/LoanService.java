@@ -47,7 +47,7 @@ public class LoanService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
-        User currentUser = userRepository.findByEmail(email)
+        User currentUser = userRepository.findByEmailAndActiveTrue(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         return loanRepository.findByUserId(userId).stream()
                 .map(loan -> new LoanDTO(

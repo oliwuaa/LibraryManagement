@@ -32,10 +32,6 @@ public class BookService {
         return bookRepository.findById(bookId).orElseThrow(() -> new NotFoundException("Book with ID " + bookId + " does not exist"));
     }
 
-    public Book getBookByISBN(String isbn) {
-        return bookRepository.findByIsbn(isbn).orElseThrow(() -> new NotFoundException("Book with ISBN" + isbn + " does not exist"));
-    }
-
     public void addBookWithIsbn(String isbn) {
         String url = "http://openlibrary.org/api/volumes/brief/isbn/" + isbn + ".json";
         String jsonResponse = restTemplate.getForObject(url, String.class);
@@ -56,16 +52,10 @@ public class BookService {
             String author = bookInfo.path("authors").get(0).path("name").asText();
 
             return new Book(title, author, isbn);
+
         } catch (Exception e) {
             throw new RuntimeException("Couldn't get the response.", e);
         }
-    }
-
-    public List<Book> getBooksByAuthor(String author) {
-        if (!bookRepository.existsByAuthor(author))
-            throw new NotFoundException("There are no books written by this author");
-
-        return bookRepository.findByAuthor(author);
     }
 
     public List<Book> getBooksByParams(String title, String author, String isbn) {
@@ -84,28 +74,6 @@ public class BookService {
         return bookRepository.findAll(specification);
     }
 
-    public void addBook(BookDTO book) {
-        if (book.title() == null || book.title().isBlank()) {
-            throw new BadRequestException("Title cannot be empty");
-        }
-        if (book.author() == null || book.author().isBlank()) {
-            throw new BadRequestException("Author cannot be empty");
-        }
-        if (book.isbn() == null || book.isbn().isBlank()) {
-            throw new BadRequestException("ISBN cannot be empty");
-        }
-
-        if (bookRepository.existsByIsbn(book.isbn())) {
-            throw new BadRequestException("This book has already been added");
-        }
-
-        Book newBook = new Book();
-        newBook.setTitle(book.title());
-        newBook.setAuthor(book.author());
-        newBook.setIsbn(book.isbn());
-        bookRepository.save(newBook);
-    }
-
     public void deleteBook(Long bookId) {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new NotFoundException("Book with ID " + bookId + " does not exist"));
@@ -116,40 +84,4 @@ public class BookService {
 
         bookRepository.delete(book);
     }
-
-    @Transactional
-    public void updateBook(Long bookId, String title, String author, String isbn) {
-        Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new NotFoundException("Book with ID " + bookId + " does not exist"));
-
-        boolean modified = false;
-
-        if (title != null && !title.isBlank() && !title.equals(book.getTitle())) {
-            book.setTitle(title);
-            modified = true;
-        }
-
-        if (author != null && !author.isBlank() && !author.equals(book.getAuthor())) {
-            book.setAuthor(author);
-            modified = true;
-        }
-
-        if (isbn != null && !isbn.isBlank()) {
-            if (!isbn.equals(book.getIsbn())) {
-                if (bookRepository.existsByIsbn(isbn)) {
-                    throw new BadRequestException("This ISBN already exists");
-                }
-                book.setIsbn(isbn);
-                modified = true;
-            }
-        }
-
-        if (!modified) {
-            throw new BadRequestException("No changes detected. Provided data is identical to existing.");
-        }
-
-        bookRepository.save(book);
-    }
-
-
 }

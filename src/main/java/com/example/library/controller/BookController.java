@@ -27,61 +27,6 @@ import java.util.List;
 public class BookController {
     private final BookService bookService;
 
-    // to delete
-    @Operation(
-            summary = "Add a new book.",
-            description = "Adds a new book to the system by providing the title, author, and ISBN. The book will be saved to the database."
-    )
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Book added successfully",
-                    content = @Content(
-                            mediaType = "text/plain",
-                            schema = @Schema(example = "Book added successfully")
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Bad request – missing required fields or book already exists",
-                    content = @Content(
-                            mediaType = "application/json",
-                            examples = {
-                                    @ExampleObject(name = "Empty Title", value = "{\"error\": \"Title cannot be empty\"}"),
-                                    @ExampleObject(name = "Empty Author", value = "{\"error\": \"Author cannot be empty\"}"),
-                                    @ExampleObject(name = "Empty ISBN", value = "{\"error\": \"ISBN cannot be empty\"}"),
-                                    @ExampleObject(name = "Duplicate ISBN", value = "{\"error\": \"This book has already been added\"}")
-                            }
-                    )
-            )
-    })
-    @PostMapping
-    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
-    public ResponseEntity<String> addBook(
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Book details including title, author, and ISBN",
-                    required = true,
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = BookDTO.class),
-                            examples = @ExampleObject(
-                                    name = "New Book",
-                                    value = """
-                                            {
-                                              "title": "The Hobbit",
-                                              "author": "J.R.R. Tolkien",
-                                              "isbn": "9780261102217"
-                                            }
-                                            """
-                            )
-                    )
-            )
-            @RequestBody BookDTO book
-    ) {
-        bookService.addBook(book);
-        return ResponseEntity.ok("Book added successfully");
-    }
-
     @Operation(summary = "Add a new book using API.", description = "Adds a new book to the system by providing the ISBN. The book will be saved to the database.")
     @ApiResponses(value = {
             @ApiResponse(
@@ -128,60 +73,6 @@ public class BookController {
         } catch (Exception e) {
             return ResponseEntity.status(500).body("{\"error\": \"An unexpected error occurred: " + e.getMessage() + "\"}");
         }
-    }
-
-
-    //to delete
-    @Operation(
-            summary = "Update a book.",
-            description = "Updates the title, author, or ISBN of the book with the given ID. " +
-                    "You can update one or more fields. If ISBN already exists for another book, update is rejected. " +
-                    "At least one field must be provided."
-    )
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Book updated successfully",
-                    content = @Content(
-                            mediaType = "text/plain",
-                            schema = @Schema(example = "Book updated successfully")
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Invalid input or ISBN already exists",
-                    content = @Content(
-                            mediaType = "application/json",
-                            examples = {
-                                    @ExampleObject(name = "ISBN Already Exists", value = "{\"error\": \"This ISBN already exists\"}"),
-                                    @ExampleObject(name = "No Fields Provided", value = "{\"error\": \"At least one field (title, author, or ISBN) must be provided\"}"),
-                                    @ExampleObject(name = "No Changes", value = "{\"error\": \"No changes detected. Provided data is identical to existing.\"}")
-                            }
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "Book not found",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(example = "{\"error\": \"Book with ID 3 does not exist\"}")
-                    )
-            )
-    })
-    @PatchMapping("/{bookId}")
-    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
-    public ResponseEntity<String> updateBook(
-            @Parameter(description = "ID of the book to update", example = "3")
-            @PathVariable Long bookId,
-            @Parameter(description = "New title of the book", example = "The Lord of the Rings")
-            @RequestParam(required = false) String title,
-            @Parameter(description = "New author of the book", example = "J.R.R. Tolkien")
-            @RequestParam(required = false) String author,
-            @Parameter(description = "New ISBN of the book", example = "9780261102385")
-            @RequestParam(required = false) String isbn
-    ) {
-        bookService.updateBook(bookId, title, author, isbn);
-        return ResponseEntity.ok("Book updated successfully");
     }
 
 

@@ -32,9 +32,6 @@ public class LibraryService {
         return libraryRepository.findById(libraryId).orElseThrow(() -> new NotFoundException("Library with ID " + libraryId + " not found"));
     }
 
-    public List<Library> getLibrariesByStatus(LibraryStatus status) {
-        return libraryRepository.findByStatus(status);
-    }
 
     public List<Library> searchLibraries(String name, String address) {
         Specification<Library> spec = Specification.where(null);
@@ -59,13 +56,6 @@ public class LibraryService {
         newLibrary.setName(library.name());
         newLibrary.setAddress(library.address());
         libraryRepository.save(newLibrary);
-    }
-
-    public List<User> getLibrariansForLibrary(Long libraryId) {
-        Library library = libraryRepository.findById(libraryId)
-                .orElseThrow(() -> new IllegalStateException("Library with id " + libraryId + " not found"));
-
-        return userRepository.findByRoleAndLibraryId(UserRole.LIBRARIAN, libraryId);
     }
 
     public void endLoan(Long copyId) {
@@ -103,7 +93,7 @@ public class LibraryService {
             }
         }
 
-        userRepository.findByRoleAndLibraryId(UserRole.LIBRARIAN, libraryId)
+        userRepository.findByRoleAndLibraryIdAndActiveTrue(UserRole.LIBRARIAN, libraryId)
                 .forEach(user -> {
                     user.setRole(UserRole.USER);
                     user.setLibrary(null);
@@ -140,7 +130,6 @@ public class LibraryService {
         if (address != null && !address.isBlank() && !Objects.equals(changedLibrary.getAddress(), address)) {
             changedLibrary.setAddress(address);
         }
-
         libraryRepository.save(changedLibrary);
     }
 

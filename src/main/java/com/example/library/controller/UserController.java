@@ -112,52 +112,6 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserById(userId));
     }
 
-    // I don't know if we really need this as it can be done using search endpoint:
-    // curl -X 'GET' \
-    //  'http://localhost:8080/users/search?role=USER' \
-    //  -H 'accept: application/json'
-    @Operation(
-            summary = "Get users by role.",
-            description = "Returns a list of users with the specified role. Allowed values: USER, LIBRARIAN, ADMIN."
-    )
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "List of users with the specified role returned successfully",
-                    content = @Content(
-                            mediaType = "application/json",
-                            array = @ArraySchema(schema = @Schema(implementation = User.class))
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "204",
-                    description = "No users found with the specified role",
-                    content = @Content
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Invalid role value",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(example = "{\"error\": \"Invalid value 'STUDENT' for parameter 'role'. Expected type: UserRole. Allowed values: USER, LIBRARIAN, ADMIN\"}")
-                    )
-            )
-    })
-    @GetMapping("/role/{role}")
-    @PreAuthorize("hasAnyRole('ADMIN')")
-    public ResponseEntity<List<UserInfoDTO>> getUsersByRole(
-            @Parameter(description = "Role of the users to retrieve", example = "USER")
-            @PathVariable UserRole role
-    ) {
-        List<UserInfoDTO> users = userService.getUsersByRole(role);
-
-        if (users.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-
-        return ResponseEntity.ok(users);
-    }
-
     @Operation(
             summary = "Get all librarians from a library.",
             description = "Returns a list of all librarians belonging to the library with the given ID."
@@ -202,7 +156,7 @@ public class UserController {
 
     @Operation(
             summary = "Register a user.",
-            description = "Registers a user. If registering a librarian, you must provide a valid library ID via query parameter libraryId."
+            description = "Registers a user."
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -222,31 +176,17 @@ public class UserController {
                                     @ExampleObject(
                                             name = "Email Taken",
                                             value = "{\"error\": \"Email already taken\"}"
-                                    ),
-                                    @ExampleObject(
-                                            name = "Missing Library Id",
-                                            value = "{\"error\": \"Library ID is required for librarians\"}"
                                     )
                             }
                     )
             ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "Library not found",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(example = "{\"error\": \"Library with ID 7 does not exist\"}")
-                    )
-            )
     })
     @PostMapping
     @PreAuthorize("hasAnyRole('LIBRARIAN','ADMIN','USER')")
     public ResponseEntity<String> registerUser(
-            @RequestBody UserRegistrationDTO user,
-            @Parameter(description = "Library ID to assign when role is LIBRARIAN", example = "3")
-            @RequestParam(required = false) Long libraryId
+            @RequestBody UserRegistrationDTO user
     ) {
-        userService.addUser(user, libraryId);
+        userService.addUser(user);
         return ResponseEntity.ok("User registered successfully");
     }
 
@@ -381,7 +321,7 @@ public class UserController {
                     )
             )
     })
-    @GetMapping("/search") // to be changed - librarian should only see the results from his library
+    @GetMapping("/search")
     @PreAuthorize("hasAnyRole('ADMIN','LIBRARIAN')")
     public ResponseEntity<List<UserInfoDTO>> getUsersBySearchCriteria(
             @Parameter(description = "Filter by user's name (partial match)", example = "John")

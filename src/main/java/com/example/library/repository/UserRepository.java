@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
-    Optional<User> findByEmail(String email);
-    List<User> findByRole(UserRole role);
-    List<User> findByRoleAndLibraryId(UserRole role, Long libraryId);
+    Optional<User> findByEmailAndActiveTrue(String email);
+    List<User> findByRoleAndActiveTrue(UserRole role);
+    List<User> findByRoleAndLibraryIdAndActiveTrue(UserRole role, Long libraryId);
 }

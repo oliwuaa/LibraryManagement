@@ -30,7 +30,7 @@ public class AuthorizationService {
     public boolean isLibrarianOfLibrary(Long libraryId) {
         String email = getEmail();
 
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmailAndActiveTrue(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         if (user.getRole() != UserRole.LIBRARIAN) {
@@ -43,7 +43,7 @@ public class AuthorizationService {
     public boolean isSelf(Long userID) {
         String email = getEmail();
 
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmailAndActiveTrue(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         return user.getId().equals(userID);
@@ -52,7 +52,7 @@ public class AuthorizationService {
     public boolean isCopyInLibrarianLibrary(Long copyId) {
         String email = getEmail();
 
-        User librarian = userRepository.findByEmail(email)
+        User librarian = userRepository.findByEmailAndActiveTrue(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Librarian not found"));
 
         if (librarian.getRole() != UserRole.LIBRARIAN || librarian.getLibrary() == null) {
@@ -68,7 +68,7 @@ public class AuthorizationService {
     public boolean isUserInLibrarianLibrary(Long userId) {
         String email = getEmail();
 
-        User librarian = userRepository.findByEmail(email)
+        User librarian = userRepository.findByEmailAndActiveTrue(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Librarian not found"));
 
         if (librarian.getRole() != UserRole.LIBRARIAN || librarian.getLibrary() == null) {
@@ -90,7 +90,7 @@ public class AuthorizationService {
     public boolean isLoanInLibrarianLibrary(Long loanId) {
         String email = getEmail();
 
-        User librarian = userRepository.findByEmail(email)
+        User librarian = userRepository.findByEmailAndActiveTrue(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Librarian not found"));
 
         if (librarian.getRole() != UserRole.LIBRARIAN || librarian.getLibrary() == null) {
@@ -106,7 +106,7 @@ public class AuthorizationService {
     public boolean isUserLoan(Long loanId) {
         String email = getEmail();
 
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmailAndActiveTrue(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         if (user.getRole() != UserRole.USER) {
@@ -122,7 +122,7 @@ public class AuthorizationService {
     public boolean isReservationInLibrarianLibrary(Long reservationId) {
         String email = getEmail();
 
-        User librarian = userRepository.findByEmail(email)
+        User librarian = userRepository.findByEmailAndActiveTrue(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Librarian not found"));
 
         if (librarian.getRole() != UserRole.LIBRARIAN || librarian.getLibrary() == null) {
@@ -138,7 +138,7 @@ public class AuthorizationService {
     public boolean isUserReservation(Long reservationId) {
         String email = getEmail();
 
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmailAndActiveTrue(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         if (user.getRole() != UserRole.USER) {

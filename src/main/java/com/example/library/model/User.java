@@ -37,6 +37,9 @@ public class User {
     @Column(nullable = false)
     private UserRole role;
 
+    @Column(nullable = false)
+    private boolean active = true;
+
     @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "library_id")

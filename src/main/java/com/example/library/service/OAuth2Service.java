@@ -31,7 +31,7 @@ public class OAuth2Service extends DefaultOAuth2UserService {
         String name = oAuth2User.getAttribute("given_name");
         String surname = oAuth2User.getAttribute("family_name");
 
-        User user = userRepository.findByEmail(email).orElseGet(() -> {
+        User user = userRepository.findByEmailAndActiveTrue(email).orElseGet(() -> {
             User newUser = new User();
             newUser.setEmail(email);
             newUser.setName(name);

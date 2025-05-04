@@ -15,6 +15,6 @@ public interface CopyRepository extends JpaRepository<Copy, Long> {
     List<Copy> findByBookIdAndStatus(Long bookId, CopyStatus status);
     List<Copy> findByLibraryIdAndStatus(Long libraryId, CopyStatus status);
     List<Copy> findByStatus(CopyStatus status);
-    List<Copy> findByStatusIn(List<CopyStatus> statuses);
+    List<Copy> findByBookIdAndLibraryIdAndStatusEquals(Long bookId, Long libraryId, CopyStatus status);
     boolean existsByBook(Book book);
 }

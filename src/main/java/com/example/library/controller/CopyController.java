@@ -244,6 +244,46 @@ public class CopyController {
     }
 
     @Operation(
+            summary = "Get all available copies by library ID.",
+            description = "Returns a list of all available copies belonging to a specific library. If no copies are found, returns 204 No Content."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "List of copies found for the library",
+                    content = @Content(
+                            mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = Copy.class))
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "No copies found for the library",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Library not found",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(example = "{\"error\": \"Library with ID 5 does not exist\"}")
+                    )
+            )
+    })
+    @GetMapping("/library/{libraryId}/available")
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN', 'USER')")
+    public ResponseEntity<List<Copy>> getAvailableCopiesByLibrary(
+            @Parameter(description = "ID of the library", example = "1")
+            @PathVariable Long libraryId
+    ) {
+        List<Copy> copies = copyService.getAvailableCopiesByLibrary(libraryId);
+        if (copies.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(copies);
+    }
+
+    @Operation(
             summary = "Get all copies by library ID.",
             description = "Returns a list of all copies belonging to a specific library. If no copies are found, returns 204 No Content."
     )
@@ -277,6 +317,88 @@ public class CopyController {
             @PathVariable Long libraryId
     ) {
         List<Copy> copies = copyService.getCopiesByLibrary(libraryId);
+        if (copies.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(copies);
+    }
+
+    @Operation(
+            summary = "Get all available copies by book ID.",
+            description = "Returns a list of all available copies belonging to a specific book. If no copies are found, returns 204 No Content."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "List of copies found for the book",
+                    content = @Content(
+                            mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = Copy.class))
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "No copies found for the book",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Book not found",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(example = "{\"error\": \"Book with ID 5 does not exist\"}")
+                    )
+            )
+    })
+    @GetMapping("/book/{bookId}/available")
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN', 'USER')")
+    public ResponseEntity<List<Copy>> getAvailableCopiesByBook(
+            @Parameter(description = "ID of the book", example = "1")
+            @PathVariable Long bookId
+    ) {
+        List<Copy> copies = copyService.getAvailableCopiesByBook(bookId);
+        if (copies.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(copies);
+    }
+
+    @Operation(
+            summary = "Get all available copies by book ID in Library with specific ID.",
+            description = "Returns a list of all copies belonging to a specific book in a specific library. If no copies are found, returns 204 No Content."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "List of copies found for the book",
+                    content = @Content(
+                            mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = Copy.class))
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "No copies found for the book",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Book not found",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(example = "{\"error\": \"Book with ID 5 does not exist\"}")
+                    )
+            )
+    })
+    @GetMapping("/library/{libraryId}/book/{bookId}")
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN', 'USER')")
+    public ResponseEntity<List<Copy>> getCopiesByBookAndByLibrary(
+            @Parameter(description = "ID of the book", example = "1")
+            @PathVariable Long bookId,
+            @Parameter(description = "ID of the library", example = "1")
+            @PathVariable Long libraryId
+    ) {
+        List<Copy> copies = copyService.getAvailableCopiesOfBookByLibrary(bookId, libraryId);
         if (copies.isEmpty()) {
             return ResponseEntity.noContent().build();
         }

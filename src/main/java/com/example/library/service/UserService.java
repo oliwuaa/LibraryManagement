@@ -26,6 +26,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class UserService {
+    private final AuthorizationService authService;
     private final UserRepository userRepository;
     private final LibraryRepository libraryRepository;
     private final PasswordEncoder passwordEncoder;
@@ -59,7 +60,7 @@ public class UserService {
 
     public List<UserInfoDTO> getUsersByRole(UserRole role) {
 
-        return userRepository.findByRole(role).stream()
+        return userRepository.findByRoleAndActiveTrue(role).stream()
                 .map(user -> new UserInfoDTO(
                         user.getId(),
                         user.getEmail(),
@@ -75,7 +76,7 @@ public class UserService {
         if (!libraryRepository.existsById(libraryId)) {
             throw new NotFoundException("Library with ID " + libraryId + " does not exist");
         }
-        return userRepository.findByRoleAndLibraryId(UserRole.LIBRARIAN, libraryId).stream()
+        return userRepository.findByRoleAndLibraryIdAndActiveTrue(UserRole.LIBRARIAN, libraryId).stream()
                 .map(user -> new UserInfoDTO(
                         user.getId(),
                         user.getEmail(),
@@ -87,29 +88,17 @@ public class UserService {
                 .toList();
     }
 
-    public void addUser(UserRegistrationDTO user, Long libraryId) {
-        if (userRepository.findByEmail(user.email()).isPresent()) {
+    public void addUser(UserRegistrationDTO user) {
+        if (userRepository.findByEmailAndActiveTrue(user.email()).isPresent()) {
             throw new BadRequestException("Email already taken");
         }
 
         User newUser = new User();
-
-        if (user.role() == UserRole.LIBRARIAN) {
-            if (libraryId == null) {
-                throw new BadRequestException("Library ID is required for librarians");
-            }
-
-            Library library = libraryRepository.findById(libraryId)
-                    .orElseThrow(() -> new NotFoundException("Library with ID " + libraryId + " does not exist"));
-            newUser.setLibrary(library);
-        } else {
-            newUser.setLibrary(null);
-        }
-
+        newUser.setLibrary(null);
 
         newUser.setEmail(user.email());
         newUser.setPassword(passwordEncoder.encode(user.password()));
-        newUser.setRole(user.role());
+        newUser.setRole(UserRole.USER);
         if (user.name() != null) {
             newUser.setName(user.name());
         }
@@ -135,7 +124,7 @@ public class UserService {
         }
 
         if (user.email() != null && !user.email().isEmpty()) {
-            if (userRepository.findByEmail(user.email()).isPresent()) {
+            if (userRepository.findByEmailAndActiveTrue(user.email()).isPresent()) {
                 throw new BadRequestException("Email already taken");
             }
             newUser.setEmail(user.email());
@@ -169,19 +158,18 @@ public class UserService {
         userRepository.save(user);
     }
 
-    // TO BE CHANGED
     public void deleteUser(Long userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new NotFoundException("User with ID " + userId + " does not exist");
-        }
-        userRepository.deleteById(userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        user.setActive(false);
+        userRepository.save(user);
     }
 
     public List<UserInfoDTO> searchUsers(String name, String email, UserRole role) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String mail = authentication.getName();
 
-        User currentUser = userRepository.findByEmail(mail)
+        User currentUser = userRepository.findByEmailAndActiveTrue(mail)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         Specification<User> spec = Specification.where(null);
@@ -200,8 +188,7 @@ public class UserService {
 
         if (currentUser.getRole() == UserRole.LIBRARIAN) {
             return userRepository.findAll(spec).stream()
-                    .filter(r -> r.getLibrary().getId()
-                            .equals(currentUser.getLibrary().getId()))
+                    .filter(user -> authService.isUserInLibrarianLibrary(user.getId()))
                     .map(user -> new UserInfoDTO(
                             user.getId(),
                             user.getEmail(),

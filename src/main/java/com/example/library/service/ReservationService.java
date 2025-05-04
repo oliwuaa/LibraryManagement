@@ -40,7 +40,7 @@ public class ReservationService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
-        User currentUser = userRepository.findByEmail(email)
+        User currentUser = userRepository.findByEmailAndActiveTrue(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         return reservationRepository.findAllByUserId(userId).stream()
@@ -73,7 +73,7 @@ public class ReservationService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmailAndActiveTrue(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         Copy copy = copyRepository.findById(copyId)
                 .orElseThrow(() -> new NotFoundException("Copy not found!"));
@@ -100,7 +100,7 @@ public class ReservationService {
         Reservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new NotFoundException("Reservation with ID " + reservationId + " does not exist"));
 
-        if (reservation.getStatus() == ReservationStatus.CANCELLED) {
+        if (reservation.getStatus() != ReservationStatus.WAITING) {
             throw new BadRequestException("Reservation with ID " + reservationId + " is already cancelled");
         }
 
