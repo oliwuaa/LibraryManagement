@@ -10,6 +10,7 @@ import com.example.library.repository.ReservationRepository;
 import com.example.library.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -23,11 +24,10 @@ import java.util.List;
 public class LoanService {
 
     private final LoanRepository loanRepository;
-
     private final UserRepository userRepository;
-
     private final CopyRepository copyRepository;
     private final ReservationRepository reservationRepository;
+    private final NotificationService notificationService;
 
 
     public List<LoanDTO> getAllLoans() {
@@ -104,6 +104,8 @@ public class LoanService {
                     reservation.setStatus(ReservationStatus.REALIZED);
                     reservationRepository.save(reservation);
                 });
+
+        notificationService.sendLoanSuccess(loan.getUser().getEmail(), loan);
     }
 
     @Transactional
@@ -125,5 +127,13 @@ public class LoanService {
 
         loan.setEndDate(date);
         loanRepository.save(loan);
+    }
+
+    @Scheduled(cron = "0 0 0 * * *")
+    public void checkLoans() {
+        List<Loan> overdueLoans = loanRepository.findByEndDateBeforeAndReturnDateIsNull(LocalDate.now());
+        for (Loan loan : overdueLoans) {
+            notificationService.sendOverdueNotification(loan.getUser().getEmail(), loan);
+        }
     }
 }

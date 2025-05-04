@@ -8,11 +8,13 @@ import com.example.library.repository.CopyRepository;
 import com.example.library.repository.ReservationRepository;
 import com.example.library.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -22,6 +24,7 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final CopyRepository copyRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     public List<ReservationDTO> getAllReservations() {
         return reservationRepository.findAll().stream()
@@ -94,6 +97,7 @@ public class ReservationService {
                 .build();
 
         reservationRepository.save(reservation);
+        notificationService.sendAcceptedReservationNotification(reservation.getUser().getEmail(), reservation);
     }
 
     public void cancelReservation(Long reservationId) {
@@ -110,18 +114,27 @@ public class ReservationService {
         Copy copy = reservation.getCopy();
         copy.setStatus(CopyStatus.AVAILABLE);
         copyRepository.save(copy);
+
+        notificationService.sendCancelReservationNotification(reservation.getUser().getEmail(), reservation);
     }
 
-    public void expiredReservations() {
+    @Scheduled(cron = "0 0 0 * * *")
+    public void checkReservations() {
         List<Reservation> expiredReservations = reservationRepository.findAllByExpirationDateBeforeAndStatus(LocalDateTime.now(), ReservationStatus.WAITING);
 
         for (Reservation reservation : expiredReservations) {
             reservation.setStatus(ReservationStatus.EXPIRED);
             reservationRepository.save(reservation);
+            notificationService.sendCancelReservationNotification(reservation.getUser().getEmail(), reservation);
 
             Copy copy = reservation.getCopy();
             copy.setStatus(CopyStatus.AVAILABLE);
             copyRepository.save(copy);
+        }
+
+        List<Reservation> reservationsWithOneDayLeft = reservationRepository.findByExpirationDate(LocalDate.now().plusDays(1));
+        for (Reservation reservation : reservationsWithOneDayLeft) {
+            notificationService.sendOneDayLeftNotification(reservation.getUser().getEmail(), reservation);
         }
     }
 }

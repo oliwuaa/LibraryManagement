@@ -60,7 +60,8 @@ W terminalu, w katalogu głównym projektu, uruchom polecenie:
 docker-compose up --build -d
 ```
 
-Aplikacja będzie dostępna pod adresem: [http://localhost:8080](http://localhost:8080)
+- Aplikacja będzie dostępna pod adresem: [http://localhost:8080](http://localhost:8080)
+- Wszystkie wysyłane maile będą rejestrowane w narzędziu MailHog, które jest dostępne pod adresem:[http://localhost:8025](http://localhost:8025)
 
 ---
 
