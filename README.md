@@ -72,6 +72,20 @@ Aplikacja obsługuje uwierzytelnianie użytkowników oraz różne poziomy dostę
 - **LIBRARIAN** - zarządza książkami i egzemplarzami.
 - **USER** - może rezerwować i wypożyczać książki.
 
+Do testowania zostały przygotowane przykładowe profile:
+- **Admin**
+    - email: admin@example.com
+    - password: admin
+
+- **Librarian**
+    - email: librarian@example.com
+    - password: librarian
+
+- **User**
+    - email: user@example.com
+    - password: user
+
+
 ---
 
 ## 🔗 API Endpoints
