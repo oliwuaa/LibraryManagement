@@ -212,4 +212,27 @@ public class ReservationController {
         reservationService.cancelReservation(reservationId);
         return ResponseEntity.ok("Reservation canceled successfully");
     }
+
+    @Operation(
+            summary = "Retrieve all reservations of the currently authenticated user.",
+            description = "Returns a list of all reservations made by the currently logged-in user, regardless of their status."
+    )
+    @GetMapping("/me")
+    @PreAuthorize("hasAnyRole('USER')")
+    public ResponseEntity<List<ReservationDTO>> getMyReservations() {
+        List<ReservationDTO> reservations = reservationService.getMyReservations();
+        return ResponseEntity.ok(reservations);
+    }
+
+    @Operation(
+            summary = "Retrieve all active reservations of the currently authenticated user.",
+            description = "Returns a list of reservations that are still active for the currently logged-in user."
+    )
+
+    @GetMapping("/me/active")
+    @PreAuthorize("hasAnyRole('USER')")
+    public ResponseEntity<List<ReservationDTO>> getMyActiveReservations() {
+        List<ReservationDTO> reservations = reservationService.getMyActiveReservations();
+        return ResponseEntity.ok(reservations);
+    }
 }

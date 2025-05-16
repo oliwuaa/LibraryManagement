@@ -1,6 +1,5 @@
 package com.example.library.repository;
 
-import com.example.library.model.Copy;
 import com.example.library.model.Reservation;
 import com.example.library.model.ReservationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
-    List<Reservation> findAllByStatus(ReservationStatus status);
+    List<Reservation> findAllByUserIdAndStatus(Long userId, ReservationStatus status);
     List<Reservation> findAllByUserId(Long userId);
     List<Reservation> findAllByExpirationDateBeforeAndStatus(LocalDateTime date, ReservationStatus status);
     Optional<Reservation> findByCopy_IdAndStatus(Long copyId, ReservationStatus status);
@@ -20,3 +19,4 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     List<Reservation> findByExpirationDate(LocalDate date);
     Optional<Reservation> findReservationByCopy_Id(Long copyId);
 }
+

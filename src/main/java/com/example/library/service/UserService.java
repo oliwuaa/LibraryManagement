@@ -9,6 +9,8 @@ import com.example.library.model.Library;
 import com.example.library.model.User;
 import com.example.library.model.UserRole;
 import com.example.library.repository.LibraryRepository;
+import com.example.library.repository.LoanRepository;
+import com.example.library.repository.ReservationRepository;
 import com.example.library.repository.UserRepository;
 import com.example.library.specification.UserSpecification;
 import lombok.RequiredArgsConstructor;
@@ -21,15 +23,28 @@ import org.springframework.stereotype.Service;
 
 
 import java.util.List;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
-    private final AuthorizationService authService;
+    private final LoanRepository loanRepository;
+    private final ReservationRepository reservationRepository;
     private final UserRepository userRepository;
     private final LibraryRepository libraryRepository;
     private final PasswordEncoder passwordEncoder;
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
+
+    public User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        log.info("Aktualnie zalogowany użytkownik: {}", email);
+        return userRepository.findByEmailAndActiveTrue(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    }
 
     public List<UserInfoDTO> getAllUsers() {
         return userRepository.findAll().stream()
@@ -57,6 +72,12 @@ public class UserService {
                 user.getLibrary() != null ? user.getLibrary().getId() : null
         );
     }
+
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmailAndActiveTrue(email)
+                .orElseThrow(() -> new NotFoundException("User with email " + email + " does not exist"));
+    }
+
 
     public List<UserInfoDTO> getUsersByRole(UserRole role) {
 
@@ -186,20 +207,25 @@ public class UserService {
             spec = spec.and(UserSpecification.hasRole(role));
         }
 
+        List<User> users = userRepository.findAll(spec);
+
         if (currentUser.getRole() == UserRole.LIBRARIAN) {
-            return userRepository.findAll(spec).stream()
-                    .filter(user -> authService.isUserInLibrarianLibrary(user.getId()))
-                    .map(user -> new UserInfoDTO(
-                            user.getId(),
-                            user.getEmail(),
-                            user.getName(),
-                            user.getSurname(),
-                            user.getRole().name(),
-                            user.getLibrary() != null ? user.getLibrary().getId() : null
-                    ))
-                    .toList();
+            List<Long> usersWithLibraryActivity = loanRepository.findByUserId(currentUser.getId()).stream()
+                    .filter(loan -> loan.getCopy().getLibrary().getId().equals(currentUser.getLibrary().getId()))
+                    .map(loan -> loan.getUser().getId())
+                    .collect(Collectors.toList());
+
+            usersWithLibraryActivity.addAll(reservationRepository.findAllByUserId(currentUser.getId()).stream()
+                    .filter(reservation -> reservation.getCopy().getLibrary().getId().equals(currentUser.getLibrary().getId()))
+                    .map(reservation -> reservation.getUser().getId())
+                    .collect(Collectors.toList()));
+
+            users = users.stream()
+                    .filter(user -> usersWithLibraryActivity.contains(user.getId()))
+                    .collect(Collectors.toList());
         }
-        return userRepository.findAll(spec).stream()
+
+        return users.stream()
                 .map(user -> new UserInfoDTO(
                         user.getId(),
                         user.getEmail(),
@@ -208,6 +234,6 @@ public class UserService {
                         user.getRole().name(),
                         user.getLibrary() != null ? user.getLibrary().getId() : null
                 ))
-                .toList();
+                .collect(Collectors.toList());
     }
 }

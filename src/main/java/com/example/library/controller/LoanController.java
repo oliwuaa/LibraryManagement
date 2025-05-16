@@ -258,4 +258,26 @@ public class LoanController {
         loanService.extendLoan(returnDate, loanId);
         return ResponseEntity.ok("Loan extended successfully");
     }
+
+    @Operation(
+            summary = "Retrieve all loans of the currently authenticated user.",
+            description = "Returns a list of all loans associated with the currently logged-in user, including past and returned items."
+    )
+    @GetMapping("/me")
+    @PreAuthorize("hasAnyRole('USER')")
+    public ResponseEntity<List<LoanDTO>> getMyLoans() {
+        List<LoanDTO> loans = loanService.getMyLoans();
+        return ResponseEntity.ok(loans);
+    }
+
+    @Operation(
+            summary = "Retrieve all active loans of the currently authenticated user.",
+            description = "Returns a list of active (not yet returned) loans for the currently logged-in user."
+    )
+    @GetMapping("/me/active")
+    @PreAuthorize("hasAnyRole('USER')")
+    public ResponseEntity<List<LoanDTO>> getMyActiveLoans() {
+        List<LoanDTO> loans = loanService.getMyActiveLoans();
+        return ResponseEntity.ok(loans);
+    }
 }

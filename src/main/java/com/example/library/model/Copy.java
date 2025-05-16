@@ -22,7 +22,6 @@ public class Copy {
     @JoinColumn(name = "book_id", nullable = false)
     private Book book;
 
-    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "library_id", nullable = false)
     private Library library;

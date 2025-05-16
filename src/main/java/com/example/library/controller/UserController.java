@@ -181,8 +181,7 @@ public class UserController {
                     )
             ),
     })
-    @PostMapping
-    @PreAuthorize("hasAnyRole('LIBRARIAN','ADMIN','USER')")
+    @PostMapping("/register")
     public ResponseEntity<String> registerUser(
             @RequestBody UserRegistrationDTO user
     ) {
@@ -338,5 +337,23 @@ public class UserController {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(users);
+    }
+
+    @Operation(
+            summary = "Retrieve the currently authenticated user's information.",
+            description = "Returns details of the user who is currently logged in."
+    )
+    @GetMapping("/me")
+    @PreAuthorize("hasAnyRole('ADMIN','LIBRARIAN','USER')")
+    public UserInfoDTO getCurrentUserInfo() {
+        User user = userService.getCurrentUser();
+        return new UserInfoDTO(
+                user.getId(),
+                user.getEmail(),
+                user.getName(),
+                user.getSurname(),
+                user.getRole().name(),
+                user.getLibrary() != null ? user.getLibrary().getId() : null
+        );
     }
 }

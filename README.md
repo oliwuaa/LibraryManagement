@@ -46,8 +46,7 @@ Utwórz plik .env w katalogu głównym projektu i dodaj do niego następujące z
 ```bash
 DB_USER=your_database_user
 DB_PASSWORD=your_database_password
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
+JWT_SECRET=your_super_secure_secret_key_for_jwt
 ```
 
 ### 4️⃣ Uruchomienie aplikacji z Dockerem
@@ -57,7 +56,7 @@ Zbuduj i uruchom aplikację z Docker Compose:
 W terminalu, w katalogu głównym projektu, uruchom polecenie:
 
 ```bash
-docker-compose up --build -d
+docker-compose up --build 
 ```
 
 - Aplikacja będzie dostępna pod adresem: [http://localhost:8080](http://localhost:8080)

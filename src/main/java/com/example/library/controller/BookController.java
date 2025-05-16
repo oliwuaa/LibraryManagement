@@ -1,6 +1,5 @@
 package com.example.library.controller;
 
-import com.example.library.dto.BookDTO;
 import com.example.library.exception.NotFoundException;
 import com.example.library.model.Book;
 import com.example.library.service.BookService;
@@ -8,7 +7,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -19,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -210,9 +209,10 @@ public class BookController {
             @Parameter(description = "ISBN to search for", example = "9780743273565")
             @RequestParam(required = false) String isbn
     ) {
+
         List<Book> books = bookService.getBooksByParams(title, author, isbn);
         if (books.isEmpty()) {
-            return ResponseEntity.noContent().build();
+            return ResponseEntity.ok(Collections.emptyList());
         }
         return ResponseEntity.ok(books);
     }

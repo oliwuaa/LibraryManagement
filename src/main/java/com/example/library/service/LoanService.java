@@ -43,6 +43,44 @@ public class LoanService {
                 .toList();
     }
 
+    public List<LoanDTO> getMyLoans() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User currentUser = userRepository.findByEmailAndActiveTrue(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        return loanRepository.findByUserId(currentUser.getId()).stream()
+                .map(loan -> new LoanDTO(
+                        loan.getId(),
+                        loan.getUser().getId(),
+                        loan.getCopy().getId(),
+                        loan.getStartDate(),
+                        loan.getEndDate(),
+                        loan.getReturnDate()
+                ))
+                .toList();
+    }
+
+    public List<LoanDTO> getMyActiveLoans() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User currentUser = userRepository.findByEmailAndActiveTrue(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        return loanRepository.findByUserIdAndReturnDateIsNull(currentUser.getId()).stream()
+                .map(loan -> new LoanDTO(
+                        loan.getId(),
+                        loan.getUser().getId(),
+                        loan.getCopy().getId(),
+                        loan.getStartDate(),
+                        loan.getEndDate(),
+                        loan.getReturnDate()
+                ))
+                .toList();
+    }
+
     public List<LoanDTO> getAllUserLoan(Long userId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();

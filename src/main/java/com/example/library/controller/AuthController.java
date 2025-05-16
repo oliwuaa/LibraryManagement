@@ -22,7 +22,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/auth")
@@ -59,7 +58,6 @@ public class AuthController {
             )
     })
     @PostMapping("/login")
-    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN', 'USER')")
     public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest authRequest) {
         try {
             Authentication authentication = authenticationManager.authenticate(
@@ -115,8 +113,7 @@ public class AuthController {
     @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN', 'USER')")
     public ResponseEntity<AuthResponse> refresh(@RequestBody TokenRefreshRequest request) {
         try {
-            UUID tokenId = UUID.fromString(request.refreshToken());
-            RefreshToken refreshToken = refreshTokenService.findByToken(tokenId)
+            RefreshToken refreshToken = refreshTokenService.findByToken(request.refreshToken())
                     .map(refreshTokenService::verifyExpiration)
                     .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
 
@@ -156,8 +153,7 @@ public class AuthController {
     @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN', 'USER')")
     public ResponseEntity<?> logout(@RequestBody TokenRefreshRequest request) {
         try {
-            UUID tokenId = UUID.fromString(request.refreshToken());
-            refreshTokenService.findByToken(tokenId).ifPresent(refreshTokenService::deleteToken);
+            refreshTokenService.findByToken(request.refreshToken()).ifPresent(refreshTokenService::deleteToken);
             return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();

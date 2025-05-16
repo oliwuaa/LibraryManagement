@@ -26,6 +26,46 @@ public class ReservationService {
     private final UserRepository userRepository;
     private final NotificationService notificationService;
 
+    public List<ReservationDTO> getMyReservations() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User currentUser = userRepository.findByEmailAndActiveTrue(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        return reservationRepository.findAllByUserId(currentUser.getId()).stream()
+                .map(reservation -> new ReservationDTO(
+                        reservation.getId(),
+                        reservation.getUser().getId(),
+                        reservation.getCopy().getId(),
+                        reservation.getCreatedAt(),
+                        reservation.getExpirationDate(),
+                        reservation.getStatus()
+                ))
+                .toList();
+    }
+
+    public List<ReservationDTO> getMyActiveReservations() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User currentUser = userRepository.findByEmailAndActiveTrue(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        return reservationRepository.findAllByUserIdAndStatus(currentUser.getId(),ReservationStatus.WAITING ).stream()
+                .map(reservation -> new ReservationDTO(
+                        reservation.getId(),
+                        reservation.getUser().getId(),
+                        reservation.getCopy().getId(),
+                        reservation.getCreatedAt(),
+                        reservation.getExpirationDate(),
+                        reservation.getStatus()
+                ))
+                .toList();
+    }
+
+
+
     public List<ReservationDTO> getAllReservations() {
         return reservationRepository.findAll().stream()
                 .map(reservation -> new ReservationDTO(
