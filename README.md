@@ -11,12 +11,12 @@ Library Management System to aplikacja umożliwiająca zarządzanie biblioteką,
 Projekt został zbudowany przy użyciu:
 
 - **Java 21**
-- **Spring Boot** 
+- **Spring Boot**
 - **Hibernate**
 - **H2 / PostgreSQL**
-- **Lombok** 
-- **Swagger** 
-- **Gradle** 
+- **Lombok**
+- **Swagger**
+- **Gradle**
 
 ---
 
@@ -46,8 +46,7 @@ Utwórz plik .env w katalogu głównym projektu i dodaj do niego następujące z
 ```bash
 DB_USER=your_database_user
 DB_PASSWORD=your_database_password
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
+JWT_SECRET=your_super_secure_secret_key_for_jwt
 ```
 
 ### 4️⃣ Uruchomienie aplikacji z Dockerem
@@ -57,7 +56,7 @@ Zbuduj i uruchom aplikację z Docker Compose:
 W terminalu, w katalogu głównym projektu, uruchom polecenie:
 
 ```bash
-docker-compose up --build -d
+docker-compose up --build 
 ```
 
 - Aplikacja będzie dostępna pod adresem: [http://localhost:8080](http://localhost:8080)
@@ -75,16 +74,16 @@ Aplikacja obsługuje uwierzytelnianie użytkowników oraz różne poziomy dostę
 
 Do testowania zostały przygotowane przykładowe profile:
 - **Admin**
-    - email: admin@example.com
-    - password: admin
+  - email: admin@example.com
+  - password: admin
 
 - **Librarian**
-    - email: librarian@example.com
-    - password: librarian
+  - email: librarian@example.com
+  - password: librarian
 
 - **User**
-    - email: user@example.com
-    - password: user
+  - email: user@example.com
+  - password: user
 
 
 ---
