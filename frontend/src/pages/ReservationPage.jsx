@@ -83,7 +83,7 @@ const ReservationsPage = () => {
 
     const cancelReservation = async (id) => {
         try {
-            const res = await fetchWithAuth(`/reservations/${id}/cancel`, {method: 'PATCH'});
+            const res = await fetchWithAuth(`/reservations/${id}/cancel`, {method: 'PUT'});
             if (res.ok) {
                 setReservations(prev => prev.map(r => r.id === id ? {...r, status: 'CANCELLED'} : r));
             } else {
@@ -101,17 +101,6 @@ const ReservationsPage = () => {
                 method: 'POST'
             });
             if (!loanRes.ok) throw new Error("Loan creation failed");
-
-            const updateRes = await fetchWithAuth(`/reservations/${reservation.id}`, {
-                method: 'PUT',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    ...reservation,
-                    status: 'APPROVED'
-                })
-            });
-
-            if (!updateRes.ok) throw new Error("Failed to update reservation");
 
             setReservations(prev => prev.filter(r => r.id !== reservation.id));
         } catch (err) {

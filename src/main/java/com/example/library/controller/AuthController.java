@@ -110,7 +110,6 @@ public class AuthController {
             )
     })
     @PostMapping("/refresh")
-    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN', 'USER')")
     public ResponseEntity<AuthResponse> refresh(@RequestBody TokenRefreshRequest request) {
         try {
             RefreshToken refreshToken = refreshTokenService.findByToken(request.refreshToken())

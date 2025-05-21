@@ -18,6 +18,7 @@ const LoanPage = () => {
     const [selectedLibrary, setSelectedLibrary] = useState('All');
     const [manualLoanLibrary, setManualLoanLibrary] = useState('All');
     const [availableCopies, setAvailableCopies] = useState([]);
+    const [selectedUserId, setSelectedUserId] = useState(null);
     const [selectedUserEmail, setSelectedUserEmail] = useState(null);
     const [selectedCopyId, setSelectedCopyId] = useState(null);
 
@@ -26,12 +27,12 @@ const LoanPage = () => {
     useEffect(() => {
         const fetchUserAndLibraries = async () => {
             try {
-                const userRes = await fetchWithAuth('/users/me');
+                const userRes = await fetchWithAuth(`/users/me`);
                 const userData = await userRes.json();
                 setUserRole(userData.role);
 
                 if (userData.role === 'ADMIN') {
-                    const libsRes = await fetchWithAuth('/libraries');
+                    const libsRes = await fetchWithAuth(`/libraries`);
                     if (libsRes.ok) {
                         const libsData = await libsRes.json();
                         const libsWithAll = [{ id: 'All', name: 'All Libraries' }, ...libsData];
@@ -58,7 +59,7 @@ const LoanPage = () => {
             try {
                 let loansUrl = '';
                 if (userRole === 'ADMIN') {
-                    loansUrl = selectedLibrary === 'All' ? '/loans' : `/loans/library/${selectedLibrary}`;
+                    loansUrl = selectedLibrary === 'All' ? `/loans` : `/loans/library/${selectedLibrary}`;
                 } else {
                     loansUrl = `/loans/library/${selectedLibrary}`;
                 }
@@ -69,13 +70,13 @@ const LoanPage = () => {
                     setLoans(loansData.sort((a,b) => new Date(b.startDate) - new Date(a.startDate)));
                 }
 
-                const booksRes = await fetchWithAuth('/books');
+                const booksRes = await fetchWithAuth(`/books`);
                 if (booksRes.ok) {
                     const booksData = await booksRes.json();
                     setBooks(booksData);
                 }
 
-                const usersRes = await fetchWithAuth('/users/search?role=USER');
+                const usersRes = await fetchWithAuth(`/users/search?role=USER`);
                 if (usersRes.ok) {
                     const usersData = await usersRes.json();
                     setUsers(usersData);
@@ -115,11 +116,15 @@ const LoanPage = () => {
     useEffect(() => {
         let result = [...loans];
 
+        console.log('Filtering loans with selectedUserId:', selectedUserId);
+        console.log('Loans:', loans);
+
         if (searchTitle.trim()) {
             result = result.filter(l => (l.title || '').toLowerCase().includes(searchTitle.toLowerCase()));
         }
-        if (searchEmail.trim()) {
-            result = result.filter(l => (l.email || '').toLowerCase().includes(searchEmail.toLowerCase()));
+
+        if (selectedUserId) {
+            result = result.filter(l => l.userID === selectedUserId);
         }
 
         if (filterStatus === 'Active') {
@@ -129,8 +134,7 @@ const LoanPage = () => {
         }
 
         setFiltered(result);
-    }, [searchTitle, searchEmail, loans, filterStatus]);
-
+    }, [searchTitle, selectedUserId, loans, filterStatus]);
 
     const returnLoan = async (id) => {
         try {
@@ -151,40 +155,31 @@ const LoanPage = () => {
     };
 
     const handleManualLoan = async () => {
-        if (!selectedUserEmail || !selectedCopyId) {
+        if (!selectedUserId || !selectedCopyId) {
             alert('Please select both a user and a copy.');
             return;
         }
 
         try {
-            const res = await fetchWithAuth('/loans', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    userEmail: selectedUserEmail,
-                    copyId: selectedCopyId,
-                    libraryId: manualLoanLibrary !== 'All' ? manualLoanLibrary : null
-                })
+            const res = await fetchWithAuth(`/loans?userId=${selectedUserId}&copyId=${selectedCopyId}`, {
+                method: 'POST'
             });
 
-            if (!res.ok) {
-                const err = await res.json();
-                alert(`Failed to create loan: ${err.message || 'Unknown error'}`);
-                return;
-            }
+            if (!res.ok) throw new Error("Loan creation failed");
 
             alert('Loan created successfully!');
+            setSelectedUserId(null);
+            setSelectedCopyId(null);
+
             const loansRes = await fetchWithAuth(selectedLibrary === 'All' ? '/loans' : `/loans/library/${selectedLibrary}`);
             if (loansRes.ok) {
                 const loansData = await loansRes.json();
-                setLoans(loansData.sort((a,b) => new Date(b.startDate) - new Date(a.startDate)));
+                setLoans(loansData.sort((a, b) => new Date(b.startDate) - new Date(a.startDate)));
             }
 
-            setSelectedUserEmail(null);
-            setSelectedCopyId(null);
         } catch (err) {
-            console.error(err);
             alert('Error creating loan.');
+            console.error(err);
         }
     };
 
@@ -194,12 +189,15 @@ const LoanPage = () => {
             value: b.title,
             label: b.title
         }));
+
     const userOptions = [...users]
         .sort((a, b) => a.email.localeCompare(b.email))
         .map(u => ({
-            value: u.email,
+            value: u.id,
             label: u.email
         }));
+
+
     const statusOptions = [
         {value: 'All', label: 'All'},
         {value: 'Active', label: 'Active'},
@@ -277,8 +275,11 @@ const LoanPage = () => {
                             <label>Select User:</label>
                             <Select
                                 options={userOptions}
-                                value={selectedUserEmail ? {value: selectedUserEmail, label: selectedUserEmail} : null}
-                                onChange={option => setSelectedUserEmail(option ? option.value : null)}
+                                value={userOptions.find(opt => opt.value === selectedUserId) || null}
+                                onChange={option => {
+                                    setSelectedUserId(option ? option.value : null);
+                                    setSelectedUserEmail(option ? option.label : null);
+                                }}
                                 styles={customSelectStyles}
                                 isClearable
                                 placeholder="Search user by email"
@@ -345,11 +346,20 @@ const LoanPage = () => {
                         <label>Search by User Email:</label>
                         <Select
                             options={userOptions}
-                            value={userOptions.find(u => u.value === searchEmail) || null}
-                            onChange={selected => setSearchEmail(selected ? selected.value : '')}
+                            value={userOptions.find(opt => opt.value === selectedUserId) || null}
+                            onChange={option => {
+                                if (option) {
+                                    setSelectedUserId(option.value);
+                                    const user = users.find(u => u.id === option.value);
+                                    setSelectedUserEmail(user ? user.email : null);
+                                } else {
+                                    setSelectedUserId(null);
+                                    setSelectedUserEmail(null);
+                                }
+                            }}
                             styles={customSelectStyles}
                             isClearable
-                            placeholder="Select user by email"
+                            placeholder="Search user by email"
                         />
                     </div>
 

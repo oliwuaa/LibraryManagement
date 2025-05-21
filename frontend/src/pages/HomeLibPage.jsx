@@ -56,22 +56,23 @@ const HomeLibPage = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const libRes = await fetchWithAuth('/libraries/me');
+                const libRes = await fetchWithAuth(`/libraries/me`);
+                if (!libRes.ok) throw new Error("Failed to fetch library info");
                 const library = await libRes.json();
 
                 const [res, usersRes, copiesRes] = await Promise.all([
                     fetchWithAuth(`/reservations/library/${library.id}`),
-                    fetchWithAuth('/users/search?role=USER'),
+                    fetchWithAuth(`/users/search?role=USER`),
                     fetchWithAuth(`/copies/library/${library.id}/available`)
                 ]);
 
-                if (!res.ok || !usersRes.ok || !copiesRes.ok) {
+                if ((!res.ok && res.status !== 204) || !usersRes.ok || !copiesRes.ok) {
                     throw new Error("Failed to fetch data");
                 }
 
-                const reservationsData = await res.json();
-                const usersData = await usersRes.json();
-                const copiesData = await copiesRes.json();
+                const reservationsData = (res.status === 204) ? [] : await res.json();
+                const usersData = (usersRes.status === 204) ? [] : await usersRes.json();
+                const copiesData = (copiesRes.status === 204) ? [] : await copiesRes.json();
 
                 setReservations(reservationsData.filter(r => r.status === 'WAITING'));
                 setUsers(usersData.sort((a, b) => {
@@ -79,7 +80,6 @@ const HomeLibPage = () => {
                     const emailB = b.email || '';
                     return emailA.localeCompare(emailB);
                 }));
-
                 setAvailableCopies(copiesData.sort((a, b) => {
                     const titleA = a.book?.title || '';
                     const titleB = b.book?.title || '';
@@ -97,6 +97,7 @@ const HomeLibPage = () => {
         fetchData();
     }, []);
 
+
     const filteredUsers = users.filter(u =>
         u.email?.toLowerCase().includes(searchUser.toLowerCase())
     );
@@ -106,35 +107,26 @@ const HomeLibPage = () => {
             const loanRes = await fetchWithAuth(`/loans?userId=${reservation.userId}&copyId=${reservation.copyId}`, {
                 method: 'POST'
             });
-
             if (!loanRes.ok) throw new Error("Loan creation failed");
-
-            await fetchWithAuth(`/reservations/${reservation.id}`, {
-                method: 'PUT',
-                body: JSON.stringify({
-                    ...reservation,
-                    status: 'APPROVED'
-                })
-            });
 
             setReservations(prev => prev.filter(r => r.id !== reservation.id));
         } catch (err) {
-            alert('Error while approving reservation.');
             console.error(err);
+            alert('Error while approving reservation.');
         }
     };
 
-    const handleReject = async (reservationId) => {
+    const handleReject = async (id) => {
         try {
-            await fetchWithAuth(`/reservations/${reservationId}`, {
-                method: 'PATCH',
-                body: JSON.stringify({status: 'REJECTED'})
-            });
-
-            setReservations(prev => prev.filter(r => r.id !== reservationId));
+            const res = await fetchWithAuth(`/reservations/${id}/cancel`, {method: 'PUT'});
+            if (res.ok) {
+                setReservations(prev => prev.map(r => r.id === id ? {...r, status: 'CANCELLED'} : r));
+            } else {
+                alert('Failed to cancel reservation.');
+            }
         } catch (err) {
-            alert('Error while rejecting reservation.');
             console.error(err);
+            alert('Error cancelling reservation.');
         }
     };
 

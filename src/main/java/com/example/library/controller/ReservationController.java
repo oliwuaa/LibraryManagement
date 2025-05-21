@@ -201,7 +201,7 @@ public class ReservationController {
                     )
             )
     })
-    @PatchMapping("/{reservationId}/cancel")
+    @PutMapping("/{reservationId}/cancel")
     @PreAuthorize("hasRole('ADMIN') or " +
             "hasRole('LIBRARIAN') and @authorizationService.isReservationInLibrarianLibrary(#reservationId) or " +
             "hasRole('USER') and @authorizationService.isUserReservation(#reservationId) ")

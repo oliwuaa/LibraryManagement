@@ -13,7 +13,7 @@ Projekt został zbudowany przy użyciu:
 - **Java 21**
 - **Spring Boot**
 - **Hibernate**
-- **H2 / PostgreSQL**
+- **PostgreSQL**
 - **Lombok**
 - **Swagger**
 - **Gradle**
@@ -59,7 +59,8 @@ W terminalu, w katalogu głównym projektu, uruchom polecenie:
 docker-compose up --build 
 ```
 
-- Aplikacja będzie dostępna pod adresem: [http://localhost:8080](http://localhost:8080)
+- Aplikacja backendowa będzie dostępna pod adresem: [http://localhost:8080](http://localhost:8080)
+- Aplikacja frontendowa (React) będzie dostępna pod adresem: [http://localhost:3000](http://localhost:3000)
 - Wszystkie wysyłane maile będą rejestrowane w narzędziu MailHog, które jest dostępne pod adresem:[http://localhost:8025](http://localhost:8025)
 
 ---

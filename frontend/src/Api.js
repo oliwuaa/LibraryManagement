@@ -27,13 +27,13 @@ export const fetchWithAuth = async (url, options = {}, retry = true) => {
             localStorage.setItem('accessToken', data.accessToken);
             return fetchWithAuth(url, options, false);
         } else {
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
-            localStorage.removeItem('userRole');
-            window.location.href = '/';
-            return;
+
+            return { error: true, status: 403, message: 'Session expired, please log in again.' };
         }
     }
 
+    if (!response.ok) {
+        return { error: true, status: response.status, message: await response.text() };
+    }
     return response;
 };
