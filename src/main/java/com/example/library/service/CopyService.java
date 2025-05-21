@@ -54,7 +54,7 @@ public class CopyService {
     }
 
     public List<Copy> getAvailableCopiesOfBookByLibrary(Long bookId, Long LibraryId) {
-        return copyRepository.findByBookIdAndLibraryIdAndStatusEquals(bookId,LibraryId,CopyStatus.AVAILABLE);
+        return copyRepository.findByBookIdAndLibraryId(bookId,LibraryId);
     }
 
     public List<Copy> getAvailableCopies() {

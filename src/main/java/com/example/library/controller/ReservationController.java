@@ -124,7 +124,7 @@ public class ReservationController {
             )
     })
     @PreAuthorize("hasRole('ADMIN') or " +
-            "hasRole('Librarian') and @authorizationService.isUserInLibrarianLibrary(#userId) or " +
+            "hasRole('LIBRARIAN') and @authorizationService.isUserInLibrarianLibrary(#userId) or " +
             "hasRole('USER') and @authorizationService.isSelf(#userId) ")
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<ReservationDTO>> getUserReservations(
@@ -203,7 +203,7 @@ public class ReservationController {
     })
     @PatchMapping("/{reservationId}/cancel")
     @PreAuthorize("hasRole('ADMIN') or " +
-            "hasRole('Librarian') and @authorizationService.isReservationInLibrarianLibrary(#reservationId) or " +
+            "hasRole('LIBRARIAN') and @authorizationService.isReservationInLibrarianLibrary(#reservationId) or " +
             "hasRole('USER') and @authorizationService.isUserReservation(#reservationId) ")
     public ResponseEntity<String> cancelReservation(
             @Parameter(description = "ID of the reservation to cancel", example = "5")
@@ -212,4 +212,50 @@ public class ReservationController {
         reservationService.cancelReservation(reservationId);
         return ResponseEntity.ok("Reservation canceled successfully");
     }
+
+    @GetMapping("/me")
+    @PreAuthorize("hasAnyRole('USER')")
+    public ResponseEntity<List<ReservationDTO>> getMyReservations() {
+        List<ReservationDTO> reservations = reservationService.getMyReservations();
+        return ResponseEntity.ok(reservations);
+    }
+
+    @GetMapping("/me/active")
+    @PreAuthorize("hasAnyRole('USER')")
+    public ResponseEntity<List<ReservationDTO>> getMyActiveReservations() {
+        List<ReservationDTO> reservations = reservationService.getMyActiveReservations();
+        return ResponseEntity.ok(reservations);
+    }
+
+    @Operation(
+            summary = "Get all reservations in a library.",
+            description = "Returns a list of all reservations related to a specific library ID."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "List of reservations returned successfully",
+                    content = @Content(
+                            mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = ReservationDTO.class))
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "No reservations found",
+                    content = @Content
+            )
+    })
+    @GetMapping("/library/{libraryId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('LIBRARIAN') and @authorizationService.isLibrarianOfLibrary(#libraryId)")
+    public ResponseEntity<List<ReservationDTO>> getReservationsByLibrary(
+            @Parameter(description = "Library ID", example = "1") @PathVariable Long libraryId
+    ) {
+        List<ReservationDTO> reservations = reservationService.getReservationsByLibrary(libraryId);
+        if (reservations.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(reservations);
+    }
+
 }

@@ -31,9 +31,13 @@ public class JwtService {
         return extractClaims(token).getSubject();
     }
 
-    public boolean isTokenValid(String token, User user) {
-        final String email = extractEmail(token);
-        return (email.equals(user.getEmail()) && !isTokenExpired(token));
+    public String extractRole(String token) {
+        return (String) extractClaims(token).get("role");
+    }
+
+    public boolean isTokenValid(String token, String email) {
+        final String tokenEmail = extractEmail(token);
+        return (tokenEmail.equals(email) && !isTokenExpired(token));
     }
 
     private boolean isTokenExpired(String token) {
@@ -52,3 +56,4 @@ public class JwtService {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 }
+

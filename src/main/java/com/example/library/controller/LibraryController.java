@@ -1,7 +1,9 @@
 package com.example.library.controller;
 
 import com.example.library.dto.LibraryDTO;
+import com.example.library.dto.ReservationDTO;
 import com.example.library.model.Library;
+import com.example.library.model.User;
 import com.example.library.service.LibraryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -84,6 +86,13 @@ public class LibraryController {
             @PathVariable("libraryId") Long libraryID
     ) {
         return ResponseEntity.ok(libraryService.getLibraryById(libraryID));
+    }
+
+    @GetMapping("/me")
+    @PreAuthorize("hasAnyRole('LIBRARIAN')")
+    public ResponseEntity<Library> getMyLibrary() {
+        Library library = libraryService.getLibraryForCurrentLibrarian();
+        return ResponseEntity.ok(library);
     }
 
     @Operation(
@@ -236,4 +245,5 @@ public class LibraryController {
 
         return ResponseEntity.ok(libraries);
     }
+
 }

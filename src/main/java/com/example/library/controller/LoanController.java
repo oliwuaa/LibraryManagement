@@ -85,7 +85,7 @@ public class LoanController {
     @PreAuthorize("hasRole('ADMIN') or " +
             "(hasRole('LIBRARIAN') and @authorizationService.isUserInLibrarianLibrary(#userId)) or " +
             "(hasRole('USER') and @authorizationService.isSelf(#userId))")
-    @GetMapping("user/{userId}") //add the option, that librarian can't loan a book
+    @GetMapping("user/{userId}")
     public ResponseEntity<List<LoanDTO>> getUserLoans(
             @Parameter(description = "ID of the user whose loans will be fetched", example = "5")
             @PathVariable Long userId
@@ -258,4 +258,50 @@ public class LoanController {
         loanService.extendLoan(returnDate, loanId);
         return ResponseEntity.ok("Loan extended successfully");
     }
+
+    @GetMapping("/me")
+    @PreAuthorize("hasAnyRole('USER')")
+    public ResponseEntity<List<LoanDTO>> getMyLoans() {
+        List<LoanDTO> loans = loanService.getMyLoans();
+        return ResponseEntity.ok(loans);
+    }
+
+    @GetMapping("/me/active")
+    @PreAuthorize("hasAnyRole('USER')")
+    public ResponseEntity<List<LoanDTO>> getMyActiveLoans() {
+        List<LoanDTO> loans = loanService.getMyActiveLoans();
+        return ResponseEntity.ok(loans);
+    }
+
+    @Operation(
+            summary = "Get all loans in a library.",
+            description = "Returns a list of all loans related to a specific library ID."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "List of loans returned successfully",
+                    content = @Content(
+                            mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = LoanDTO.class))
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "No loans found",
+                    content = @Content
+            )
+    })
+    @GetMapping("/library/{libraryId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('LIBRARIAN') and @authorizationService.isLibrarianOfLibrary(#libraryId)")
+    public ResponseEntity<List<LoanDTO>> getLoansByLibrary(
+            @Parameter(description = "Library ID", example = "1") @PathVariable Long libraryId
+    ) {
+        List<LoanDTO> loans = loanService.getLoansByLibrary(libraryId);
+        if (loans.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(loans);
+    }
+
 }

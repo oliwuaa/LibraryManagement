@@ -1,0 +1,104 @@
+.user-profile-layout {
+    background-color: #111827;
+    min-height: 100vh;
+    padding: 100px 2rem 2rem;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.user-profile-container {
+    width: 80vw;
+    max-width: 1000px;
+    background-color: #1f2937;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+
+}
+
+.data-list {
+    list-style: none;
+    padding-left: 0;
+    margin-top: 1rem;
+}
+
+.data-list li {
+    background-color: #2a2a40;
+    border: 1px solid #444;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+}
+
+.data-list button {
+    margin-top: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    border: none;
+    border-radius: 6px;
+    background-color: #ef4444;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.data-list button:hover {
+    background-color: #dc2626;
+}
+
+.user-profile-container.filter-input {
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: 6px;
+    border: 1px solid #4b5563;
+    background-color: #374151;
+    color: white;
+    margin: 1rem 0;
+}
+
+.user-profile-container.history-section {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    margin-top: 1rem;
+}
+
+.user-profile-container.history-section > div {
+    width: 100%;
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.user-profile-container.scrollable-history {
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+    margin-top: 1rem;
+}
+
+.user-profile-container.scrollable-history::-webkit-scrollbar {
+    width: 8px;
+}
+
+.user-profile-container.scrollable-history::-webkit-scrollbar-track {
+    background: #1f2937;
+}
+
+.user-profile-containerscrollable-history::-webkit-scrollbar-thumb {
+    background-color: #4b5563;
+    border-radius: 4px;
+}
+
+
+@media (min-width: 768px) {
+    .user-profile-container.history-section {
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .user-profile-container.history-section > div {
+        width: 48%;
+    }
+}

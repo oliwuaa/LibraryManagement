@@ -1,0 +1,98 @@
+.handle-layout {
+    background-color: #111827;
+    min-height: 100vh;
+    padding: 100px 2rem 2rem;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.handle-container {
+    width: 80vw;
+    max-width: 1000px;
+    background-color: #1f2937;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.reservation-card {
+    background-color: #2a2a40;
+    border: 1px solid #444;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+}
+
+.button-group {
+    margin-top: 0.5rem;
+    display: flex;
+    gap: 1rem;
+}
+
+.approve-btn,
+.reject-btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.approve-btn {
+    background-color: #10b981;
+    color: white;
+}
+
+.approve-btn:hover {
+    background-color: #059669;
+}
+
+.reject-btn {
+    background-color: #ef4444;
+    color: white;
+}
+
+.reject-btn:hover {
+    background-color: #dc2626;
+}
+
+.reservation-scroll {
+    max-height: 180px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.reservation-scroll::-webkit-scrollbar {
+    width: 8px;
+}
+
+.reservation-scroll::-webkit-scrollbar-track {
+    background: #1f2937;
+}
+
+.reservation-scroll::-webkit-scrollbar-thumb {
+    background-color: #4b5563;
+    border-radius: 4px;
+}
+
+.library-list-scroll {
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+    margin-top: 1rem;
+}
+
+.library-list-scroll::-webkit-scrollbar {
+    width: 8px;
+}
+
+.library-list-scroll::-webkit-scrollbar-track {
+    background: #1f2937;
+}
+
+.library-list-scroll::-webkit-scrollbar-thumb {
+    background-color: #4b5563;
+    border-radius: 4px;
+}

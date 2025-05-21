@@ -35,7 +35,54 @@ public class LoanService {
                 .map(loan -> new LoanDTO(
                         loan.getId(),
                         loan.getUser().getId(),
+                        loan.getUser().getEmail(),
                         loan.getCopy().getId(),
+                        loan.getCopy().getBook().getTitle(),
+                        loan.getCopy().getLibrary().getId(),
+                        loan.getStartDate(),
+                        loan.getEndDate(),
+                        loan.getReturnDate()
+                ))
+                .toList();
+    }
+
+    public List<LoanDTO> getMyLoans() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User currentUser = userRepository.findByEmailAndActiveTrue(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        return loanRepository.findByUserId(currentUser.getId()).stream()
+                .map(loan -> new LoanDTO(
+                        loan.getId(),
+                        loan.getUser().getId(),
+                        loan.getUser().getEmail(),
+                        loan.getCopy().getId(),
+                        loan.getCopy().getBook().getTitle(),
+                        loan.getCopy().getLibrary().getId(),
+                        loan.getStartDate(),
+                        loan.getEndDate(),
+                        loan.getReturnDate()
+                ))
+                .toList();
+    }
+
+    public List<LoanDTO> getMyActiveLoans() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User currentUser = userRepository.findByEmailAndActiveTrue(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        return loanRepository.findByUserIdAndReturnDateIsNull(currentUser.getId()).stream()
+                .map(loan -> new LoanDTO(
+                        loan.getId(),
+                        loan.getUser().getId(),
+                        loan.getUser().getEmail(),
+                        loan.getCopy().getId(),
+                        loan.getCopy().getBook().getTitle(),
+                        loan.getCopy().getLibrary().getId(),
                         loan.getStartDate(),
                         loan.getEndDate(),
                         loan.getReturnDate()
@@ -53,7 +100,10 @@ public class LoanService {
                 .map(loan -> new LoanDTO(
                         loan.getId(),
                         loan.getUser().getId(),
+                        loan.getUser().getEmail(),
                         loan.getCopy().getId(),
+                        loan.getCopy().getBook().getTitle(),
+                        loan.getCopy().getLibrary().getId(),
                         loan.getStartDate(),
                         loan.getEndDate(),
                         loan.getReturnDate()
@@ -68,12 +118,33 @@ public class LoanService {
         return new LoanDTO(
                 loan.getId(),
                 loan.getUser().getId(),
+                loan.getUser().getEmail(),
                 loan.getCopy().getId(),
+                loan.getCopy().getBook().getTitle(),
+                loan.getCopy().getLibrary().getId(),
                 loan.getStartDate(),
                 loan.getEndDate(),
                 loan.getReturnDate()
         );
     }
+
+    public List<LoanDTO> getLoansByLibrary(Long libraryId) {
+        List<Loan> loans = loanRepository.findByCopy_Library_Id(libraryId);
+        return loans.stream()
+                .map(loan -> new LoanDTO(
+                        loan.getId(),
+                        loan.getUser().getId(),
+                        loan.getUser().getEmail(),
+                        loan.getCopy().getId(),
+                        loan.getCopy().getBook().getTitle(),
+                        loan.getCopy().getLibrary().getId(),
+                        loan.getStartDate(),
+                        loan.getEndDate(),
+                        loan.getReturnDate()
+                ))
+                .toList();
+    }
+
 
     public void borrowBook(Long userId, Long copyId) {
         User user = userRepository.findById(userId)
@@ -129,7 +200,7 @@ public class LoanService {
         loanRepository.save(loan);
     }
 
-    @Scheduled(cron = "0 0 0 * * *")
+    @Scheduled(cron = "0 */5 * * * *")
     public void checkLoans() {
         List<Loan> overdueLoans = loanRepository.findByEndDateBeforeAndReturnDateIsNull(LocalDate.now());
         for (Loan loan : overdueLoans) {

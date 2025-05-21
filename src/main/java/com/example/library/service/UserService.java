@@ -9,10 +9,13 @@ import com.example.library.model.Library;
 import com.example.library.model.User;
 import com.example.library.model.UserRole;
 import com.example.library.repository.LibraryRepository;
+import com.example.library.repository.LoanRepository;
+import com.example.library.repository.ReservationRepository;
 import com.example.library.repository.UserRepository;
 import com.example.library.specification.UserSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -21,15 +24,29 @@ import org.springframework.stereotype.Service;
 
 
 import java.util.List;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
-    private final AuthorizationService authService;
+    private final LoanRepository loanRepository;
+    private final ReservationRepository reservationRepository;
     private final UserRepository userRepository;
     private final LibraryRepository libraryRepository;
     private final PasswordEncoder passwordEncoder;
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
+
+    public User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        log.info("Aktualnie zalogowany użytkownik: {}", email);
+        return userRepository.findByEmailAndActiveTrue(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    }
 
     public List<UserInfoDTO> getAllUsers() {
         return userRepository.findAll().stream()
@@ -57,6 +74,35 @@ public class UserService {
                 user.getLibrary() != null ? user.getLibrary().getId() : null
         );
     }
+
+    public List<User> getUsersRelatedToLibrarianLibrary() {
+        User librarian = getCurrentUser();
+        if (librarian.getRole() != UserRole.LIBRARIAN || librarian.getLibrary() == null) {
+            throw new AccessDeniedException("Only librarians with library assigned can access this");
+        }
+
+        Long libraryId = librarian.getLibrary().getId();
+        List<User> allUsers = userRepository.findAll();
+
+        return allUsers.stream()
+                .filter(user -> {
+                    boolean hasReservation = reservationRepository.findAllByUserId(user.getId()).stream()
+                            .anyMatch(res -> res.getCopy().getLibrary().getId().equals(libraryId));
+
+                    boolean hasLoan = loanRepository.findByUserId(user.getId()).stream()
+                            .anyMatch(loan -> loan.getCopy().getLibrary().getId().equals(libraryId));
+
+                    return hasReservation || hasLoan;
+                })
+                .toList();
+    }
+
+
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmailAndActiveTrue(email)
+                .orElseThrow(() -> new NotFoundException("User with email " + email + " does not exist"));
+    }
+
 
     public List<UserInfoDTO> getUsersByRole(UserRole role) {
 
@@ -186,20 +232,20 @@ public class UserService {
             spec = spec.and(UserSpecification.hasRole(role));
         }
 
+        List<User> users = userRepository.findAll(spec);
+
         if (currentUser.getRole() == UserRole.LIBRARIAN) {
-            return userRepository.findAll(spec).stream()
-                    .filter(user -> authService.isUserInLibrarianLibrary(user.getId()))
-                    .map(user -> new UserInfoDTO(
-                            user.getId(),
-                            user.getEmail(),
-                            user.getName(),
-                            user.getSurname(),
-                            user.getRole().name(),
-                            user.getLibrary() != null ? user.getLibrary().getId() : null
-                    ))
-                    .toList();
+
+            if (role == UserRole.LIBRARIAN || role == UserRole.ADMIN) {
+                Long libraryId = currentUser.getLibrary() != null ? currentUser.getLibrary().getId() : null;
+                users = users.stream()
+                        .filter(user -> user.getLibrary() != null &&
+                                user.getLibrary().getId().equals(libraryId))
+                        .collect(Collectors.toList());
+            }
         }
-        return userRepository.findAll(spec).stream()
+
+        return users.stream()
                 .map(user -> new UserInfoDTO(
                         user.getId(),
                         user.getEmail(),
@@ -208,6 +254,6 @@ public class UserService {
                         user.getRole().name(),
                         user.getLibrary() != null ? user.getLibrary().getId() : null
                 ))
-                .toList();
+                .collect(Collectors.toList());
     }
 }

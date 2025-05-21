@@ -1,8 +1,10 @@
 package com.example.library.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -27,10 +29,12 @@ public class Reservation {
     private Copy copy;
 
     @Column(nullable = false)
-    private LocalDateTime createdAt;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd.MM.yyyy")
+    private LocalDate createdAt;
 
     @Column(nullable = false)
-    private LocalDateTime expirationDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd.MM.yyyy")
+    private LocalDate expirationDate;
 
     @Enumerated(EnumType.STRING)
     private ReservationStatus status;

@@ -1,0 +1,77 @@
+.user-info-container {
+    background-color: #1f2937;
+    max-width: 1000px;
+    height: auto;
+    width: auto;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    margin-right: 150px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.user-info-container p {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    padding: 0.8em;
+    margin: 0.5em 0;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    background: #1e1e2f;
+    color: white;
+    font-size: 1em;
+    white-space: nowrap;
+}
+
+.user-info-container h2 {
+    color: #fff;
+}
+
+.profile-layout {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.loans-reservations-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.reservations-container, .loans-container {
+    background-color: #1f2937;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-top: 2px;
+    max-height: 300px;
+    overflow-y: auto;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    color: white;
+}
+
+.reservations-container , .loans-container table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.reservations-container th,
+.reservations-container td {
+    padding: 0.8rem;
+    text-align: center;
+    border-bottom: 1px solid #ccc;
+}
+
+.reservations-container th {
+    background-color: #1e1e2f;
+    font-weight: bold;
+}
+
+.reservations-container tr:nth-child(even) {
+    background-color: #2a2a40;
+}

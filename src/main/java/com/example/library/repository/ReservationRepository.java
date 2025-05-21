@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
-    List<Reservation> findAllByStatus(ReservationStatus status);
+    List<Reservation> findAllByUserIdAndStatus(Long userId, ReservationStatus status);
     List<Reservation> findAllByUserId(Long userId);
     List<Reservation> findAllByExpirationDateBeforeAndStatus(LocalDateTime date, ReservationStatus status);
     Optional<Reservation> findByCopy_IdAndStatus(Long copyId, ReservationStatus status);
@@ -19,4 +19,5 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     boolean existsReservationByCopy_Id(Long copyId);
     List<Reservation> findByExpirationDate(LocalDate date);
     Optional<Reservation> findReservationByCopy_Id(Long copyId);
+    List<Reservation> findByCopyLibraryId(Long libraryId);
 }

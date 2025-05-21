@@ -23,6 +23,7 @@ public class LibraryService {
     private final CopyRepository copyRepository;
     private final LoanRepository loanRepository;
     private final ReservationRepository reservationRepository;
+    private final UserService userService;
 
     public List<Library> getAllLibraries() {
         return libraryRepository.findAll();
@@ -31,6 +32,21 @@ public class LibraryService {
     public Library getLibraryById(Long libraryId) {
         return libraryRepository.findById(libraryId).orElseThrow(() -> new NotFoundException("Library with ID " + libraryId + " not found"));
     }
+
+    public Library getLibraryForCurrentLibrarian() {
+        User user = userService.getCurrentUser();
+
+        if (user.getRole() != UserRole.LIBRARIAN) {
+            throw new BadRequestException("User is not a librarian");
+        }
+
+        if (user.getLibrary() == null) {
+            throw new NotFoundException("Librarian is not assigned to any library");
+        }
+
+        return user.getLibrary();
+    }
+
 
 
     public List<Library> searchLibraries(String name, String address) {

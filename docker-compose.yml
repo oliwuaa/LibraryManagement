@@ -9,8 +9,6 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/library
       - SPRING_DATASOURCE_USERNAME=${DB_USER}
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
-      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - JWT_SECRET=${JWT_SECRET}
       - SPRING_MAIL_HOST=mailhog
       - SPRING_MAIL_PORT=1025
@@ -37,6 +35,15 @@ services:
     ports:
       - "1025:1025"
       - "8025:8025"
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: library_frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - app
 
 volumes:
   postgres_data:

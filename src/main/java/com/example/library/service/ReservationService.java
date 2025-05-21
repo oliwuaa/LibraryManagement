@@ -26,12 +26,61 @@ public class ReservationService {
     private final UserRepository userRepository;
     private final NotificationService notificationService;
 
+    public List<ReservationDTO> getMyReservations() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User currentUser = userRepository.findByEmailAndActiveTrue(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        return reservationRepository.findAllByUserId(currentUser.getId()).stream()
+                .map(reservation -> new ReservationDTO(
+                        reservation.getId(),
+                        reservation.getUser().getId(),
+                        reservation.getUser().getEmail(),
+                        reservation.getCopy().getId(),
+                        reservation.getCopy().getBook().getTitle(),
+                        reservation.getCopy().getLibrary().getId(),
+                        reservation.getCreatedAt(),
+                        reservation.getExpirationDate(),
+                        reservation.getStatus()
+                ))
+                .toList();
+    }
+
+    public List<ReservationDTO> getMyActiveReservations() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User currentUser = userRepository.findByEmailAndActiveTrue(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        return reservationRepository.findAllByUserIdAndStatus(currentUser.getId(),ReservationStatus.WAITING ).stream()
+                .map(reservation -> new ReservationDTO(
+                        reservation.getId(),
+                        reservation.getUser().getId(),
+                        reservation.getUser().getEmail(),
+                        reservation.getCopy().getId(),
+                        reservation.getCopy().getBook().getTitle(),
+                        reservation.getCopy().getLibrary().getId(),
+                        reservation.getCreatedAt(),
+                        reservation.getExpirationDate(),
+                        reservation.getStatus()
+                ))
+                .toList();
+    }
+
+
+
     public List<ReservationDTO> getAllReservations() {
         return reservationRepository.findAll().stream()
                 .map(reservation -> new ReservationDTO(
                         reservation.getId(),
                         reservation.getUser().getId(),
+                        reservation.getUser().getEmail(),
                         reservation.getCopy().getId(),
+                        reservation.getCopy().getBook().getTitle(),
+                        reservation.getCopy().getLibrary().getId(),
                         reservation.getCreatedAt(),
                         reservation.getExpirationDate(),
                         reservation.getStatus()
@@ -50,7 +99,10 @@ public class ReservationService {
                 .map(reservation -> new ReservationDTO(
                         reservation.getId(),
                         reservation.getUser().getId(),
+                        reservation.getUser().getEmail(),
                         reservation.getCopy().getId(),
+                        reservation.getCopy().getBook().getTitle(),
+                        reservation.getCopy().getLibrary().getId(),
                         reservation.getCreatedAt(),
                         reservation.getExpirationDate(),
                         reservation.getStatus()
@@ -65,7 +117,10 @@ public class ReservationService {
         return new ReservationDTO(
                 reservation.getId(),
                 reservation.getUser().getId(),
+                reservation.getUser().getEmail(),
                 reservation.getCopy().getId(),
+                reservation.getCopy().getBook().getTitle(),
+                reservation.getCopy().getLibrary().getId(),
                 reservation.getCreatedAt(),
                 reservation.getExpirationDate(),
                 reservation.getStatus()
@@ -91,8 +146,8 @@ public class ReservationService {
         Reservation reservation = Reservation.builder()
                 .user(user)
                 .copy(copy)
-                .createdAt(LocalDateTime.now())
-                .expirationDate(LocalDateTime.now().plusDays(2))
+                .createdAt(LocalDate.now())
+                .expirationDate(LocalDate.now().plusDays(2))
                 .status(ReservationStatus.WAITING)
                 .build();
 
@@ -118,7 +173,7 @@ public class ReservationService {
         notificationService.sendCancelReservationNotification(reservation.getUser().getEmail(), reservation);
     }
 
-    @Scheduled(cron = "0 0 0 * * *")
+    @Scheduled(cron = "0 */5 * * * *")
     public void checkReservations() {
         List<Reservation> expiredReservations = reservationRepository.findAllByExpirationDateBeforeAndStatus(LocalDateTime.now(), ReservationStatus.WAITING);
 
@@ -137,4 +192,22 @@ public class ReservationService {
             notificationService.sendOneDayLeftNotification(reservation.getUser().getEmail(), reservation);
         }
     }
+
+    public List<ReservationDTO> getReservationsByLibrary(Long libraryId) {
+        List<Reservation> reservations = reservationRepository.findByCopyLibraryId(libraryId);
+        return reservations.stream()
+                .map(reservation -> new ReservationDTO(
+                        reservation.getId(),
+                        reservation.getUser().getId(),
+                        reservation.getUser().getEmail(),
+                        reservation.getCopy().getId(),
+                        reservation.getCopy().getBook().getTitle(),
+                        reservation.getCopy().getLibrary().getId(),
+                        reservation.getCreatedAt(),
+                        reservation.getExpirationDate(),
+                        reservation.getStatus()
+                ))
+                .toList();
+    }
+
 }

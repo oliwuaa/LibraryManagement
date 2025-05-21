@@ -22,7 +22,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/auth")
@@ -59,7 +58,6 @@ public class AuthController {
             )
     })
     @PostMapping("/login")
-    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN', 'USER')")
     public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest authRequest) {
         try {
             Authentication authentication = authenticationManager.authenticate(
@@ -73,7 +71,7 @@ public class AuthController {
             RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
 
             return ResponseEntity.ok(
-                    new AuthResponse(accessToken, refreshToken.getToken().toString(), ACCESS_TOKEN_EXPIRATION_MS / 1000)
+                    new AuthResponse(accessToken, refreshToken.getToken().toString(), ACCESS_TOKEN_EXPIRATION_MS / 1000, user.getRole().name())
             );
 
         } catch (AuthenticationException ex) {
@@ -115,15 +113,15 @@ public class AuthController {
     @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN', 'USER')")
     public ResponseEntity<AuthResponse> refresh(@RequestBody TokenRefreshRequest request) {
         try {
-            UUID tokenId = UUID.fromString(request.refreshToken());
-            RefreshToken refreshToken = refreshTokenService.findByToken(tokenId)
+            RefreshToken refreshToken = refreshTokenService.findByToken(request.refreshToken())
                     .map(refreshTokenService::verifyExpiration)
                     .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
 
-            String accessToken = jwtService.generateToken(refreshToken.getUser());
+            User user = refreshToken.getUser();
+            String accessToken = jwtService.generateToken(user);
 
             return ResponseEntity.ok(
-                    new AuthResponse(accessToken, refreshToken.getToken().toString(), ACCESS_TOKEN_EXPIRATION_MS / 1000)
+                    new AuthResponse(accessToken, refreshToken.getToken().toString(), ACCESS_TOKEN_EXPIRATION_MS / 1000,  user.getRole().name())
             );
 
         } catch (IllegalArgumentException e) {
@@ -156,8 +154,7 @@ public class AuthController {
     @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN', 'USER')")
     public ResponseEntity<?> logout(@RequestBody TokenRefreshRequest request) {
         try {
-            UUID tokenId = UUID.fromString(request.refreshToken());
-            refreshTokenService.findByToken(tokenId).ifPresent(refreshTokenService::deleteToken);
+            refreshTokenService.findByToken(request.refreshToken()).ifPresent(refreshTokenService::deleteToken);
             return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();

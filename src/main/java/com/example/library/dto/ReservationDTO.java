@@ -2,7 +2,7 @@ package com.example.library.dto;
 
 import com.example.library.model.ReservationStatus;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
-public record ReservationDTO(Long id, Long userId, Long copyId, LocalDateTime createdAt, LocalDateTime expirationDate, ReservationStatus status) {
+public record ReservationDTO(Long id, Long userId, String email, Long copyId, String title, Long libraryId, LocalDate createdAt, LocalDate expirationDate, ReservationStatus status) {
 }

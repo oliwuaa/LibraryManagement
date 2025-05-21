@@ -1,0 +1,65 @@
+:root {
+  --primary: #646cff;
+  --bg-dark: #0f111a;
+  --glass: rgba(255, 255, 255, 0.1);
+  --blur: 12px;
+  --radius: 16px;
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+
+  font-family: 'Segoe UI', Avenir, Helvetica, Arial, sans-serif;
+  color-scheme: dark light;
+  background-color: var(--bg-dark);
+  color: #fff;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: radial-gradient(ellipse at center, #1f1f2e 0%, #0f111a 100%);
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+h1 {
+  font-size: 2.8rem;
+  margin-bottom: 1rem;
+}
+
+button {
+  padding: 0.8em 1.6em;
+  font-size: 1rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: background 0.3s ease;
+}
+button:hover {
+  background: #535bf2;
+}
+
+.home-card {
+  background: var(--glass);
+  backdrop-filter: blur(var(--blur));
+  -webkit-backdrop-filter: blur(var(--blur));
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 3rem;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}

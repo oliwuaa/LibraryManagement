@@ -1,0 +1,119 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Times New Roman', Times, serif;
+  background-color: #319071;
+  color: #1f2937;
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+h1, h2, h3 {
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+p {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  justify-content: center;
+}
+
+.page-container {
+  max-width: 480px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  color: #fff;
+  text-align: center;
+}
+
+input {
+  width: 100%;
+  padding: 0.8em;
+  margin: 0.5em 0;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background: #1e1e2f;
+  color: white;
+  font-size: 1em;
+}
+
+input:focus {
+  outline: none;
+  border-color: #646cff;
+}
+
+button {
+  width: 100%;
+  margin-top: 5px;
+  padding: 0.8em;
+  font-size: 1rem;
+  border-radius: 8px;
+  margin-bottom: 5px;
+  background-color: #51c3e2;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.button.save-btn {
+  background-color: #10b880;
+}
+
+.button.cancel-btn {
+  background-color: #ac1010;
+}
+
+.button.edit-btn {
+  background-color: #ffa500;
+}
+
+.button.res-btn {
+  background-color: #10b880;
+}
+
+.button.save-btn:hover  {
+  background-color: #0c815a;
+}
+
+.button.cancel-btn:hover  {
+  background-color: #780d0d;
+}
+
+.button.edit-btn:hover  {
+  background-color: #cc8402;
+}
+
+.button.res-btn:hover  {
+  background-color: #0b7e57;
+}
+
+button:hover {
+  background-color: #45a2bb;
+}
+
+a {
+  color: #61dafb;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+hr {
+  color: #10b880;
+}

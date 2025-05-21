@@ -1,4 +1,4 @@
 package com.example.library.dto;
 
-public record AuthResponse(String accessToken, String refreshToken, long expiresIn) {
+public record AuthResponse(String accessToken, String refreshToken, long expiresIn, String role) {
 }

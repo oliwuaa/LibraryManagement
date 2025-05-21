@@ -1,0 +1,243 @@
+.manage-layout {
+    background-color: #111827;
+    min-height: 100vh;
+    color: #fff;
+    padding: 2rem;
+    padding-top: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+.resource-container {
+    width: 80vw;
+    max-width: 1200px;
+    background-color: #1f2937;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+
+.manage-layout h2 {
+    margin-bottom: 1.5rem;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.manage-layout h3 {
+    color: #ffffff;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    margin-bottom: 1rem;
+    padding-bottom: 0.3rem;
+    font-size: 1.5rem;
+    border-bottom: 2px solid #10b981;
+}
+
+.manage-layout h4 {
+    color: #ffffff;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+}
+
+.manage-layout h5,p {
+    color: #ffffff;
+}
+
+
+.search-section {
+    margin-bottom: 2rem;
+    width: 100%;
+    max-width: 600px;
+}
+
+.search-section label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #d1d5db;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: 1px solid #4b5563;
+    background-color: #374151;
+    font-size: 0.95rem;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.search-input:focus {
+    border-color: #6b7280;
+}
+
+
+.book-list-section {
+    width: 100%;
+}
+
+.book-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+    border: 2px solid #111827;
+    border-radius: 12px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+
+.book-list::-webkit-scrollbar,
+.scrollable-copies::-webkit-scrollbar {
+    width: 8px;
+}
+.book-list::-webkit-scrollbar-track,
+.scrollable-copies::-webkit-scrollbar-track {
+    background: #1f2937;
+}
+.book-list::-webkit-scrollbar-thumb,
+.scrollable-copies::-webkit-scrollbar-thumb {
+    background-color: #4b5563;
+    border-radius: 4px;
+}
+
+.book-list-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 1rem;
+    width: 100%;
+}
+.book-holder {
+    background-color: #2a2a40;
+    color: #000;
+    border-radius: 12px;
+    padding: 1rem;
+    width: 100%;
+    max-width: 1000px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.2s ease-in-out;
+}
+
+.book-holder:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.book-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+
+.book-info h4 {
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.book-info p {
+    font-size: 0.9rem;
+    margin: 0.1rem 0;
+    color: #ffffff;
+}
+
+.book-expanded {
+    margin-top: 1rem;
+}
+
+.book-actions {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.scrollable-copies {
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 0.5rem;
+    background-color: #1e1e1e;
+    border: 1px solid #444;
+    border-radius: 8px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.copies-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.copy-item, .copies-list li {
+    background-color: #2a2a40;
+    padding: 0.5rem 1rem;
+    border: 1px solid #444;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    color: #e5e7eb;
+}
+
+.button {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+    width: auto;
+    min-width: 0;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+    color: white;
+}
+
+.add-copy-inline-btn {
+    composes: button;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+    width: auto;
+    min-width: 0;
+}
+
+
+.delete-btn {
+    composes: button;
+    background-color: #dc2626;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+    width: auto;
+    min-width: 0;
+}
+
+.delete-btn:hover {
+    background-color: #b91c1c;
+}
+
+.expand-btn, .expand-icon {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+    width: auto;
+    min-width: 0;
+    color: #9ca3af;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.book-actions {
+    display: flex;
+    gap: 1px;
+}
