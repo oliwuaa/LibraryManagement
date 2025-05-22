@@ -4,12 +4,14 @@ import Navbar from '../components/Navbar';
 import '../styles/ManageResources.css';
 import '../styles/ReservationPage.css';
 import {fetchWithAuth} from '../Api.js';
+import DatePicker from 'react-datepicker'
+import { format } from 'date-fns';
+import 'react-datepicker/dist/react-datepicker.css';
 
 const LoanPage = () => {
     const [loans, setLoans] = useState([]);
     const [filtered, setFiltered] = useState([]);
     const [searchTitle, setSearchTitle] = useState('');
-    const [searchEmail, setSearchEmail] = useState('');
     const [userRole, setUserRole] = useState(null);
     const [books, setBooks] = useState([]);
     const [users, setUsers] = useState([]);
@@ -21,6 +23,8 @@ const LoanPage = () => {
     const [selectedUserId, setSelectedUserId] = useState(null);
     const [selectedUserEmail, setSelectedUserEmail] = useState(null);
     const [selectedCopyId, setSelectedCopyId] = useState(null);
+    const [showDatePickerForLoan, setShowDatePickerForLoan] = useState(null);
+    const [selectedDate, setSelectedDate] = useState(null);
 
     const token = localStorage.getItem('accessToken');
 
@@ -151,6 +155,29 @@ const LoanPage = () => {
             }
         } catch (err) {
             console.error('Error returning loan:', err);
+        }
+    };
+
+    const extendLoan = async (id, newReturnDate) => {
+        try {
+            const formattedDate = format(newReturnDate, 'yyyy-MM-dd');
+            const res = await fetchWithAuth(`/loans/${id}/extend?returnDate=${formattedDate}`, {
+                method: 'POST'
+            });
+
+            if (res.ok) {
+                const updatedLoans = await fetchWithAuth(
+                    selectedLibrary === 'All' ? '/loans' : `/loans/library/${selectedLibrary}`
+                );
+                if (updatedLoans.ok) {
+                    const data = await updatedLoans.json();
+                    setLoans(data.sort((a, b) => new Date(b.startDate) - new Date(a.startDate)));
+                }
+            } else {
+                console.error('Failed to extend loan:', await res.text());
+            }
+        } catch (err) {
+            console.error('Error extending loan:', err);
         }
     };
 
@@ -399,9 +426,53 @@ const LoanPage = () => {
 
                                                 {isActive && (
                                                     <div className="book-buttons">
-                                                        <button className="delete-btn"
-                                                                onClick={() => returnLoan(loan.id)}>Return
-                                                        </button>
+                                                        {showDatePickerForLoan === loan.id ? (
+                                                            <>
+                                                                <DatePicker
+                                                                    selected={selectedDate}
+                                                                    onChange={(date) => setSelectedDate(date)}
+                                                                    minDate={new Date(new Date(loan.endDate).getTime() + 24 * 60 * 60 * 1000)}
+                                                                    dateFormat="dd-MM-yyyy"
+                                                                    inline
+                                                                />
+                                                                <button
+                                                                    className="confirm-btn"
+                                                                    onClick={async () => {
+                                                                        if (selectedDate) {
+                                                                            await extendLoan(loan.id, selectedDate);
+                                                                            setShowDatePickerForLoan(null);
+                                                                            setSelectedDate(null);
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    Accept
+                                                                </button>
+                                                                <button
+                                                                    className="cancel-btn"
+                                                                    onClick={() => {
+                                                                        setShowDatePickerForLoan(null);
+                                                                        setSelectedDate(null);
+                                                                    }}
+                                                                >
+                                                                    Cancel
+                                                                </button>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <button
+                                                                    className="extend-btn"
+                                                                    onClick={() => {
+                                                                        setShowDatePickerForLoan(loan.id);
+                                                                        setSelectedDate(new Date(loan.endDate));
+                                                                    }}
+                                                                >
+                                                                    Extend
+                                                                </button>
+                                                                <button className="delete-btn" onClick={() => returnLoan(loan.id)}>
+                                                                    Return
+                                                                </button>
+                                                            </>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>
