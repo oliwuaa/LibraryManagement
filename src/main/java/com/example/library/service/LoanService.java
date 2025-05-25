@@ -39,6 +39,7 @@ public class LoanService {
                         loan.getCopy().getId(),
                         loan.getCopy().getBook().getTitle(),
                         loan.getCopy().getLibrary().getId(),
+                        loan.getCopy().getLibrary().getName(),
                         loan.getStartDate(),
                         loan.getEndDate(),
                         loan.getReturnDate()
@@ -61,6 +62,7 @@ public class LoanService {
                         loan.getCopy().getId(),
                         loan.getCopy().getBook().getTitle(),
                         loan.getCopy().getLibrary().getId(),
+                        loan.getCopy().getLibrary().getName(),
                         loan.getStartDate(),
                         loan.getEndDate(),
                         loan.getReturnDate()
@@ -83,6 +85,7 @@ public class LoanService {
                         loan.getCopy().getId(),
                         loan.getCopy().getBook().getTitle(),
                         loan.getCopy().getLibrary().getId(),
+                        loan.getCopy().getLibrary().getName(),
                         loan.getStartDate(),
                         loan.getEndDate(),
                         loan.getReturnDate()
@@ -104,6 +107,7 @@ public class LoanService {
                         loan.getCopy().getId(),
                         loan.getCopy().getBook().getTitle(),
                         loan.getCopy().getLibrary().getId(),
+                        loan.getCopy().getLibrary().getName(),
                         loan.getStartDate(),
                         loan.getEndDate(),
                         loan.getReturnDate()
@@ -122,6 +126,7 @@ public class LoanService {
                 loan.getCopy().getId(),
                 loan.getCopy().getBook().getTitle(),
                 loan.getCopy().getLibrary().getId(),
+                loan.getCopy().getLibrary().getName(),
                 loan.getStartDate(),
                 loan.getEndDate(),
                 loan.getReturnDate()
@@ -138,6 +143,7 @@ public class LoanService {
                         loan.getCopy().getId(),
                         loan.getCopy().getBook().getTitle(),
                         loan.getCopy().getLibrary().getId(),
+                        loan.getCopy().getLibrary().getName(),
                         loan.getStartDate(),
                         loan.getEndDate(),
                         loan.getReturnDate()

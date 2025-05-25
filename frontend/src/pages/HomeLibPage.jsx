@@ -3,6 +3,7 @@ import Navbar from '../components/Navbar';
 import Select from 'react-select';
 import '../styles/HomeLibPage.css';
 import {fetchWithAuth} from '../Api.js';
+import GlobalAlert from '../components/GlobalAlert';
 
 
 const customSelectStyles = {
@@ -50,6 +51,8 @@ const HomeLibPage = () => {
     const [selectedCopy, setSelectedCopy] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [alertMsg, setAlertMsg] = useState('');
+    const [alertType, setAlertType] = useState('info');
 
     const token = localStorage.getItem('accessToken');
 
@@ -103,36 +106,54 @@ const HomeLibPage = () => {
     );
 
     const handleApprove = async (reservation) => {
+        setAlertType('');
+        setAlertMsg('');
         try {
             const loanRes = await fetchWithAuth(`/loans?userId=${reservation.userId}&copyId=${reservation.copyId}`, {
                 method: 'POST'
             });
-            if (!loanRes.ok) throw new Error("Loan creation failed");
+            if (loanRes.ok) {
+                setAlertType('success');
+                setAlertMsg('Reservation accepted. Loan created.')
+            } else {
+                setAlertType('error');
+                setAlertMsg('Failed to accept reservation.');
+            }
 
             setReservations(prev => prev.filter(r => r.id !== reservation.id));
         } catch (err) {
+            setAlertType('error');
+            setAlertMsg('Error while approving reservation.');
             console.error(err);
-            alert('Error while approving reservation.');
         }
     };
 
     const handleReject = async (id) => {
+        setAlertType('');
+        setAlertMsg('');
         try {
             const res = await fetchWithAuth(`/reservations/${id}/cancel`, {method: 'PUT'});
             if (res.ok) {
                 setReservations(prev => prev.map(r => r.id === id ? {...r, status: 'CANCELLED'} : r));
+                setAlertType('success');
+                setAlertMsg('Reservation cancelled successfully.')
             } else {
-                alert('Failed to cancel reservation.');
+                setAlertType('error');
+                setAlertMsg('Failed to cancel reservation.');
             }
         } catch (err) {
             console.error(err);
-            alert('Error cancelling reservation.');
+            setAlertType('error');
+            setAlertMsg('Error cancelling reservation.');
         }
     };
 
     const handleManualLoan = async () => {
+        setAlertType('');
+        setAlertMsg('');
         if (!selectedUser || !selectedCopy) {
-            alert('Please select both a user and a copy.');
+            setAlertType('info');
+            setAlertMsg('Please select both a user and a copy.');
             return;
         }
 
@@ -141,13 +162,20 @@ const HomeLibPage = () => {
                 method: 'POST'
             });
 
-            if (!res.ok) throw new Error("Loan creation failed");
+            if (res.ok) {
+                setAlertType('success');
+                setAlertMsg('Loan created successfully!');
+                setSelectedUser('');
+                setSelectedCopy('');
+            } else {
+                setAlertType('error');
+                setAlertMsg('Fail to create a loan.');
+            }
 
-            alert('Loan created successfully!');
-            setSelectedUser('');
-            setSelectedCopy('');
+
         } catch (err) {
-            alert('Error while creating the loan.');
+            setAlertType('error');
+            setAlertMsg('Error while creating the loan.');
             console.error(err);
         }
     };
@@ -158,6 +186,11 @@ const HomeLibPage = () => {
     return (
         <div className="handle-layout">
             <Navbar/>
+            <GlobalAlert
+                message={alertMsg}
+                type={alertType}
+                onClose={() => setAlertMsg('')}
+            />
             <div className="handle-container">
                 <h3>Manual Loan Creation</h3>
                 <div className="manual-loan-form">

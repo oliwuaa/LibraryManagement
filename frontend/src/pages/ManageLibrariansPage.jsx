@@ -1,14 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React, {useEffect, useState} from 'react';
+import {useParams} from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import { fetchWithAuth } from '../Api.js';
+import {fetchWithAuth} from '../Api.js';
+import GlobalAlert from "../components/GlobalAlert.jsx";
 
 const LibrariansManagePage = () => {
-    const { libraryId } = useParams();
+    const {libraryId} = useParams();
     const [libraryName, setLibraryName] = useState('');
     const [librarians, setLibrarians] = useState([]);
     const [searchEmail, setSearchEmail] = useState('');
-    const token = localStorage.getItem('accessToken');
+    const [alertMsg, setAlertMsg] = useState('');
+    const [alertType, setAlertType] = useState('info');
 
     useEffect(() => {
         const fetchLibrary = async () => {
@@ -36,19 +38,38 @@ const LibrariansManagePage = () => {
     );
 
     const downgradeToUser = async (userId) => {
-        const res = await fetchWithAuth(`/users/${userId}`, {
-            method: 'PUT',
-            body: JSON.stringify({ role: 'USER' }),
-        });
+        setAlertType('');
+        setAlertMsg('');
+        try {
+            const res = await fetchWithAuth(`/users/${userId}`, {
+                method: 'PUT',
+                body: JSON.stringify({role: 'USER'}),
+            });
 
-        if (res.ok) {
-            setLibrarians(prev => prev.filter(u => u.id !== userId));
+            if (res.ok) {
+                setLibrarians(prev => prev.filter(u => u.id !== userId));
+                setAlertType('success');
+                setAlertMsg('Librarian downgraded successfully.');
+            }
+            else{
+                setAlertType('error');
+                setAlertMsg('Failed to downgrade user.');
+            }
+        } catch (err) {
+            setAlertType('error');
+            setAlertMsg('Error downgrading user.');
+            console.error(err);
         }
     };
 
     return (
         <div className="manage-layout">
-            <Navbar />
+            <Navbar/>
+            <GlobalAlert
+                message={alertMsg}
+                type={alertType}
+                onClose={() => setAlertMsg('')}
+            />
             <div className="resource-container">
                 <h3>Librarians of "{libraryName}" (#{libraryId})</h3>
 
@@ -72,7 +93,7 @@ const LibrariansManagePage = () => {
                                 .sort((a, b) => a.id - b.id)
                                 .map(user => (
                                     <div key={user.id} className="book-holder">
-                                        <div className="book-header" style={{ cursor: 'default' }}>
+                                        <div className="book-header" style={{cursor: 'default'}}>
                                             <div className="book-info">
                                                 <h4>User #{user.id}</h4>
                                                 <p><strong>Email:</strong> {user.email}</p>

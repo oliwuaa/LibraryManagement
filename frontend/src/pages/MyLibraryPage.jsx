@@ -12,8 +12,6 @@ const MyLibraryPage = () => {
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    const token = localStorage.getItem('accessToken');
-
     useEffect(() => {
         const fetchLibrary = async () => {
             try {

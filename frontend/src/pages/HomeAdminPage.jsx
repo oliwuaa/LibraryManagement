@@ -3,6 +3,7 @@ import {Link} from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import '../styles/HomeLibPage.css';
 import {fetchWithAuth} from '../Api.js';
+import GlobalAlert from '../components/GlobalAlert';
 
 
 const HomeAdminPage = () => {
@@ -15,6 +16,8 @@ const HomeAdminPage = () => {
     const [showAddForm, setShowAddForm] = useState(false);
     const [newLibraryData, setNewLibraryData] = useState({name: '', address: ''});
     const [user, setUser] = useState(null);
+    const [alertMsg, setAlertMsg] = useState('');
+    const [alertType, setAlertType] = useState('info');
 
 
     const token = localStorage.getItem('accessToken');
@@ -59,6 +62,8 @@ const HomeAdminPage = () => {
     };
 
     const handleSaveEdit = async () => {
+        setAlertType('');
+        setAlertMsg('');
         try {
             const res = await fetchWithAuth(`/libraries/${editingLibraryId}`, {
                 method: 'PUT',
@@ -68,18 +73,23 @@ const HomeAdminPage = () => {
             if (res.ok) {
                 setEditingLibraryId(null);
                 fetchLibraries();
+                setAlertType('success');
+                setAlertMsg('Library updated successfully.')
             } else {
-                alert('Failed to update library.');
+                setAlertType('error');
+                setAlertMsg('Failed to update library.');
             }
         } catch (err) {
+            setAlertType('error');
+            setAlertMsg('Error updating library.');
             console.error(err);
-            alert('Error updating library.');
         }
     };
 
     const handleDelete = async (id) => {
         if (!window.confirm('Are you sure you want to delete this library?')) return;
-
+        setAlertType('');
+        setAlertMsg('');
         try {
             const res = await fetchWithAuth(`/libraries/${id}`, {
                 method: 'DELETE'
@@ -87,12 +97,16 @@ const HomeAdminPage = () => {
 
             if (res.ok) {
                 setLibraries(libraries.filter(lib => lib.id !== id));
+                setAlertType('success');
+                setAlertMsg('Library deleted successfully.');
             } else {
-                alert('Failed to delete library.');
+                setAlertType('error');
+                setAlertMsg('Failed to delete library.');
             }
         } catch (err) {
+            setAlertType('error');
+            setAlertMsg('Error deleting library.');
             console.error(err);
-            alert('Error deleting library.');
         }
     };
 
@@ -101,6 +115,8 @@ const HomeAdminPage = () => {
     };
 
     const handleAddLibrary = async () => {
+        setAlertType('');
+        setAlertMsg('');
         try {
             const res = await fetchWithAuth('/libraries', {
                 method: 'POST',
@@ -111,14 +127,19 @@ const HomeAdminPage = () => {
                 setNewLibraryData({name: '', address: ''});
                 setShowAddForm(false);
                 fetchLibraries();
+                setAlertType('success');
+                setAlertMsg('Library added successfully.');
             } else {
-                alert('Failed to add library.');
+                setAlertType('error');
+                setAlertMsg('Failed to add library.');
             }
         } catch (err) {
+            setAlertType('error');
+            setAlertMsg('Error adding library.');
             console.error(err);
-            alert('Error adding library.');
         }
     };
+
 
 
     if (loading) return <p>Loading...</p>;
@@ -127,6 +148,11 @@ const HomeAdminPage = () => {
     return (
         <div className="handle-layout">
             <Navbar/>
+            <GlobalAlert
+                message={alertMsg}
+                type={alertType}
+                onClose={() => setAlertMsg('')}
+            />
             <div className="handle-container">
 
                 {user && (
@@ -195,6 +221,7 @@ const HomeAdminPage = () => {
                                     onChange={e => handleNewLibraryChange('address', e.target.value)}
                                 />
                             </p>
+
                             <div className="button-group">
                                 <button className="button save-btn" onClick={handleAddLibrary}>Add</button>
                                 <button className="button cancel-btn" onClick={() => {

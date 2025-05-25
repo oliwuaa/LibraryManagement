@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import '../styles/ManageResources.css';
 import '../styles/ReservationPage.css';
 import {fetchWithAuth} from '../Api.js';
+import GlobalAlert from "../components/GlobalAlert.jsx";
 
 const ReservationsPage = () => {
     const [reservations, setReservations] = useState([]);
@@ -14,8 +15,9 @@ const ReservationsPage = () => {
     const [userRole, setUserRole] = useState(null);
     const [books, setBooks] = useState([]);
     const [users, setUsers] = useState([]);
+    const [alertMsg, setAlertMsg] = useState('');
+    const [alertType, setAlertType] = useState('info');
 
-    const token = localStorage.getItem('accessToken');
 
     useEffect(() => {
         const fetchUserInfo = async () => {
@@ -82,30 +84,45 @@ const ReservationsPage = () => {
     }, [statusFilter, searchTitle, searchEmail, reservations]);
 
     const cancelReservation = async (id) => {
+        setAlertType('');
+        setAlertMsg('');
         try {
             const res = await fetchWithAuth(`/reservations/${id}/cancel`, {method: 'PUT'});
             if (res.ok) {
                 setReservations(prev => prev.map(r => r.id === id ? {...r, status: 'CANCELLED'} : r));
+                setAlertType('success');
+                setAlertMsg('Reservation cancelled successfully!');
             } else {
-                alert('Failed to cancel reservation.');
+                setAlertType('error');
+                setAlertMsg('Failed to cancel reservation.');
             }
         } catch (err) {
             console.error(err);
-            alert('Error cancelling reservation.');
+            setAlertType('error');
+            setAlertMsg('Error cancelling reservation.');
         }
     };
 
     const acceptReservation = async (reservation) => {
+        setAlertType('');
+        setAlertMsg('');
         try {
             const loanRes = await fetchWithAuth(`/loans?userId=${reservation.userId}&copyId=${reservation.copyId}`, {
                 method: 'POST'
             });
-            if (!loanRes.ok) throw new Error("Loan creation failed");
-
-            setReservations(prev => prev.filter(r => r.id !== reservation.id));
+            if (!loanRes.ok) {
+                setAlertType('error');
+                setAlertMsg("Loan creation failed");
+            }
+            else {
+                setReservations(prev => prev.filter(r => r.id !== reservation.id));
+                setAlertType('success');
+                setAlertMsg("Loan created successfully!");
+            }
         } catch (err) {
             console.error(err);
-            alert('Error while approving reservation.');
+            setAlertType('error');
+            setAlertMsg('Error while approving reservation.');
         }
     };
 
@@ -175,6 +192,11 @@ const ReservationsPage = () => {
     return (
         <div className="manage-layout">
             <Navbar/>
+            <GlobalAlert
+                message={alertMsg}
+                type={alertType}
+                onClose={() => setAlertMsg('')}
+            />
             <div className="resource-container">
                 <h3>Reservations</h3>
 

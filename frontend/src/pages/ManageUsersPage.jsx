@@ -1,14 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import Select from 'react-select';
 import Navbar from '../components/Navbar';
 import '../styles/ManageResources.css';
 import '../styles/ReservationPage.css';
-import { fetchWithAuth } from '../Api.js';
+import {fetchWithAuth} from '../Api.js';
+import GlobalAlert from "../components/GlobalAlert.jsx";
 
 const roleOptions = [
-    { value: 'ADMIN', label: 'Admin' },
-    { value: 'LIBRARIAN', label: 'Librarian' },
-    { value: 'USER', label: 'User' },
+    {value: 'ADMIN', label: 'Admin'},
+    {value: 'LIBRARIAN', label: 'Librarian'},
+    {value: 'USER', label: 'User'},
 ];
 
 const ManageUsersPage = () => {
@@ -18,10 +19,10 @@ const ManageUsersPage = () => {
     const [searchEmail, setSearchEmail] = useState('');
     const [searchName, setSearchName] = useState('');
     const [editingUserId, setEditingUserId] = useState(null);
-    const [editFormData, setEditFormData] = useState({ name: '', email: '', role: '' });
+    const [editFormData, setEditFormData] = useState({name: '', email: '', role: ''});
     const [libraries, setLibraries] = useState([]);
-
-    const token = localStorage.getItem('accessToken');
+    const [alertMsg, setAlertMsg] = useState('');
+    const [alertType, setAlertType] = useState('info');
 
     useEffect(() => {
         fetchUsers();
@@ -76,16 +77,18 @@ const ManageUsersPage = () => {
     };
 
     const handleEditChange = (field, value) => {
-        setEditFormData(prev => ({ ...prev, [field]: value }));
+        setEditFormData(prev => ({...prev, [field]: value}));
     };
 
     const handleSaveEdit = async () => {
+        setAlertType('');
+        setAlertMsg('');
         try {
             const userDataToSend = {
                 name: editFormData.name,
                 email: editFormData.email,
                 role: editFormData.role,
-                ...(editFormData.role === 'LIBRARIAN' && { libraryId: editFormData.libraryId })
+                ...(editFormData.role === 'LIBRARIAN' && {libraryId: editFormData.libraryId})
             };
 
             const res = await fetchWithAuth(`/users/${editingUserId}`, {
@@ -96,26 +99,40 @@ const ManageUsersPage = () => {
             if (res?.ok) {
                 setEditingUserId(null);
                 fetchUsers();
+                setAlertType('success');
+                setAlertMsg(`Changes saved successfully!`);
             } else {
-                alert('Failed to update user.');
+                setAlertType('error');
+                setAlertMsg('Failed to update user.');
             }
         } catch (err) {
             console.error(err);
-            alert('Error updating user.');
+            setAlertType('error');
+            setAlertMsg('Error updating user.');
         }
     };
 
     const handleDelete = async (id) => {
         if (!window.confirm('Are you sure you want to delete this user?')) return;
+        setAlertType('');
+        setAlertMsg('');
+        try {
+            const res = await fetchWithAuth(`/users/${id}`, {
+                method: 'DELETE',
+            });
 
-        const res = await fetchWithAuth(`/users/${id}`, {
-            method: 'DELETE',
-        });
-
-        if (res?.ok) {
-            setUsers(users.filter(u => u.id !== id));
-        } else {
-            alert('Failed to delete user.');
+            if (res?.ok) {
+                setUsers(users.filter(u => u.id !== id));
+                setAlertType('success');
+                setAlertMsg(`User deleted successfully!`);
+            } else {
+                setAlertType('error');
+                setAlertMsg('Failed to delete user.');
+            }
+        } catch (err) {
+            setAlertType('error');
+            setAlertMsg('Error deleting user.')
+            console.error(err);
         }
     };
 
@@ -160,16 +177,21 @@ const ManageUsersPage = () => {
 
     return (
         <div className="manage-layout">
-            <Navbar />
+            <Navbar/>
+            <GlobalAlert
+                message={alertMsg}
+                type={alertType}
+                onClose={() => setAlertMsg('')}
+            />
             <div className="resource-container">
                 <h2>Manage Users</h2>
 
                 <div className="search-section">
-                    <div className="filter-container" style={{ marginBottom: '1rem' }}>
+                    <div className="filter-container" style={{marginBottom: '1rem'}}>
                         <label>Filter by Role:</label>
                         <Select
-                            options={[{ value: 'ALL', label: 'All' }, ...roleOptions]}
-                            value={[{ value: 'ALL', label: 'All' }, ...roleOptions].find(opt => opt.value === roleFilter)}
+                            options={[{value: 'ALL', label: 'All'}, ...roleOptions]}
+                            value={[{value: 'ALL', label: 'All'}, ...roleOptions].find(opt => opt.value === roleFilter)}
                             onChange={selected => setRoleFilter(selected.value)}
                             styles={customSelectStyles}
                             placeholder="Select role..."
@@ -181,7 +203,7 @@ const ManageUsersPage = () => {
                         <label htmlFor="user-select">Search by User Email:</label>
                         <Select
                             options={userOptions}
-                            value={searchEmail ? { label: searchEmail, value: searchEmail } : null}
+                            value={searchEmail ? {label: searchEmail, value: searchEmail} : null}
                             onChange={(selected) => setSearchEmail(selected ? selected.value : '')}
                             onInputChange={(inputValue) => setSearchEmail(inputValue)}
                             styles={customSelectStyles}
@@ -198,7 +220,7 @@ const ManageUsersPage = () => {
                         <div className="book-list-grid">
                             {filteredUsers.map(user => (
                                 <div key={user.id} className="book-holder">
-                                    <div className="book-header" style={{ cursor: 'default' }}>
+                                    <div className="book-header" style={{cursor: 'default'}}>
                                         <div className="book-info">
                                             <h4>User #{user.id}</h4>
                                             {editingUserId === user.id ? (
@@ -221,9 +243,9 @@ const ManageUsersPage = () => {
                                                         <strong>Role:</strong>{' '}
                                                         <Select
                                                             options={[
-                                                                { value: 'USER', label: 'User' },
-                                                                { value: 'LIBRARIAN', label: 'Librarian' },
-                                                                { value: 'ADMIN', label: 'Admin' }
+                                                                {value: 'USER', label: 'User'},
+                                                                {value: 'LIBRARIAN', label: 'Librarian'},
+                                                                {value: 'ADMIN', label: 'Admin'}
                                                             ]}
                                                             value={{
                                                                 value: editFormData.role,
@@ -269,13 +291,21 @@ const ManageUsersPage = () => {
                                         <div className="book-actions">
                                             {editingUserId === user.id ? (
                                                 <>
-                                                    <button className="add-copy-inline-btn" onClick={handleSaveEdit}>Save</button>
-                                                    <button className="delete-btn" onClick={() => setEditingUserId(null)}>Cancel</button>
+                                                    <button className="add-copy-inline-btn"
+                                                            onClick={handleSaveEdit}>Save
+                                                    </button>
+                                                    <button className="delete-btn"
+                                                            onClick={() => setEditingUserId(null)}>Cancel
+                                                    </button>
                                                 </>
                                             ) : (
                                                 <>
-                                                    <button className="add-copy-inline-btn" onClick={() => handleEdit(user)}>Edit</button>
-                                                    <button className="delete-btn" onClick={() => handleDelete(user.id)}>Delete</button>
+                                                    <button className="add-copy-inline-btn"
+                                                            onClick={() => handleEdit(user)}>Edit
+                                                    </button>
+                                                    <button className="delete-btn"
+                                                            onClick={() => handleDelete(user.id)}>Delete
+                                                    </button>
                                                 </>
                                             )}
                                         </div>

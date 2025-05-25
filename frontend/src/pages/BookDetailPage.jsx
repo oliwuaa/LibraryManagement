@@ -3,6 +3,7 @@ import {useParams} from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import '../styles/BookDetailPage.css';
 import {fetchWithAuth} from '../Api.js';
+import GlobalAlert from '../components/GlobalAlert';
 
 const OPEN_LIBRARY_API_URL = 'https://openlibrary.org/api/books?bibkeys';
 
@@ -15,6 +16,8 @@ const BookDetailPage = () => {
     const [loading, setLoading] = useState(true);
     const [userRole, setUserRole] = useState(null);
     const [openLibraryData, setOpenLibraryData] = useState(null);
+    const [alertMsg, setAlertMsg] = useState('');
+    const [alertType, setAlertType] = useState('info');
 
     useEffect(() => {
         const fetchUserInfo = async () => {
@@ -74,27 +77,40 @@ const BookDetailPage = () => {
     }, [bookId]);
 
     const handleReserve = async () => {
+        setAlertType('');
+        setAlertMsg('');
         if (!selectedLibraryId) {
-            alert('Select a library first.');
+            setAlertType('warning');
+            setAlertMsg('Select a library first.');
             return;
         }
 
         const eligibleCopies = copies.filter(copy => copy.library.id === parseInt(selectedLibraryId));
         if (eligibleCopies.length === 0) {
-            alert('No available copies in this library.');
+            setAlertType('info');
+            setAlertMsg('No available copies in this library.');
             return;
         }
 
         const randomCopy = eligibleCopies[Math.floor(Math.random() * eligibleCopies.length)];
 
-        const response = await fetchWithAuth(`/reservations?copyId=${randomCopy.id}`, {
-            method: 'POST'
-        });
+        try {
+            const response = await fetchWithAuth(`/reservations?copyId=${randomCopy.id}`, {
+                method: 'POST'
+            });
 
-        if (response.ok) {
-            alert('Book reserved successfully!');
-        } else {
-            alert('Reservation failed.');
+            if (response.ok) {
+                setAlertType('success');
+                setAlertMsg('Book reserved successfully!');
+            } else {
+                const errMsg = await response.text();
+                setAlertType('error');
+                setAlertMsg(`Reservation failed: ${errMsg || 'Server error.'}`);
+            }
+        } catch (error) {
+            setAlertType('error');
+            setAlertMsg('Unexpected error occurred.');
+            console.error(error);
         }
     };
 
@@ -120,6 +136,12 @@ const BookDetailPage = () => {
     return (
         <div>
             <Navbar/>
+            <GlobalAlert
+                message={alertMsg}
+                type={alertType}
+                onClose={() => setAlertMsg('')}
+            />
+
             <div className="book-detail">
                 <div className="detail-card">
                     <div className="book-image-container">

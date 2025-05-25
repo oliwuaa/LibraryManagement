@@ -48,6 +48,8 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test:6.4.6'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
 }
 
 tasks.named('test') {

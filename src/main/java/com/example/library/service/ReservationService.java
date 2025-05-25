@@ -40,6 +40,7 @@ public class ReservationService {
                         reservation.getCopy().getId(),
                         reservation.getCopy().getBook().getTitle(),
                         reservation.getCopy().getLibrary().getId(),
+                        reservation.getCopy().getLibrary().getName(),
                         reservation.getCreatedAt(),
                         reservation.getExpirationDate(),
                         reservation.getStatus()
@@ -62,6 +63,7 @@ public class ReservationService {
                         reservation.getCopy().getId(),
                         reservation.getCopy().getBook().getTitle(),
                         reservation.getCopy().getLibrary().getId(),
+                        reservation.getCopy().getLibrary().getName(),
                         reservation.getCreatedAt(),
                         reservation.getExpirationDate(),
                         reservation.getStatus()
@@ -80,6 +82,7 @@ public class ReservationService {
                         reservation.getCopy().getId(),
                         reservation.getCopy().getBook().getTitle(),
                         reservation.getCopy().getLibrary().getId(),
+                        reservation.getCopy().getLibrary().getName(),
                         reservation.getCreatedAt(),
                         reservation.getExpirationDate(),
                         reservation.getStatus()
@@ -102,6 +105,7 @@ public class ReservationService {
                         reservation.getCopy().getId(),
                         reservation.getCopy().getBook().getTitle(),
                         reservation.getCopy().getLibrary().getId(),
+                        reservation.getCopy().getLibrary().getName(),
                         reservation.getCreatedAt(),
                         reservation.getExpirationDate(),
                         reservation.getStatus()
@@ -120,6 +124,7 @@ public class ReservationService {
                 reservation.getCopy().getId(),
                 reservation.getCopy().getBook().getTitle(),
                 reservation.getCopy().getLibrary().getId(),
+                reservation.getCopy().getLibrary().getName(),
                 reservation.getCreatedAt(),
                 reservation.getExpirationDate(),
                 reservation.getStatus()
@@ -202,11 +207,11 @@ public class ReservationService {
                         reservation.getCopy().getId(),
                         reservation.getCopy().getBook().getTitle(),
                         reservation.getCopy().getLibrary().getId(),
+                        reservation.getCopy().getLibrary().getName(),
                         reservation.getCreatedAt(),
                         reservation.getExpirationDate(),
                         reservation.getStatus()
                 ))
                 .toList();
     }
-
 }

@@ -3,6 +3,7 @@ import {useParams} from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import '../styles/ManageResources.css';
 import {fetchWithAuth} from '../Api.js';
+import GlobalAlert from "../components/GlobalAlert.jsx";
 
 const ManageResourcesPage = () => {
     const [library, setLibrary] = useState(null);
@@ -15,6 +16,9 @@ const ManageResourcesPage = () => {
     const [expandedBookId, setExpandedBookId] = useState(null);
     const [bookToAddCopy, setBookToAddCopy] = useState(null);
     const {libraryId} = useParams();
+    const [alertMsg, setAlertMsg] = useState('');
+    const [alertType, setAlertType] = useState('info');
+
 
     const token = localStorage.getItem('accessToken');
 
@@ -88,35 +92,40 @@ const ManageResourcesPage = () => {
         }
     };
 
-    const handleAddCopyToBook = (book) => {
-        setBookToAddCopy(book);
-    };
-
     const handleAddCopy = async (book) => {
         if (!book || !library) return;
+        setAlertType('');
+        setAlertMsg('');
         try {
             const res = await fetchWithAuth(`/copies/${book.id}/${library.id}`, {
                 method: 'POST',
             });
             if (res.ok) {
-                alert(`Copy added successfully to "${book.title}"!`);
+                setAlertType('success');
+                setAlertMsg(`Copy added successfully to "${book.title}"!`);
                 fetchCopiesByBook(book.id);
                 if (expandedBookId === book.id) {
                     toggleBookCopies(book.id);
                     toggleBookCopies(book.id);
                 }
             } else {
-                alert('Error adding copy.');
+                setAlertType('error');
+                setAlertMsg('Failed to add copy.');
             }
         } catch (err) {
-            alert('Error adding copy.');
+            setAlertType('error');
+            setAlertMsg('Error adding copy.');
             console.error(err);
         }
     };
 
     const handleDeleteCopy = async (copyId, status) => {
+        setAlertType('');
+        setAlertMsg('');
+
         if (status !== 'AVAILABLE') {
-            alert('Only copies with status AVAILABLE can be deleted.');
+            setAlertType('warning');
+            setAlertMsg('Only copies with status AVAILABLE can be deleted.');
             return;
         }
         if (!window.confirm('Are you sure you want to delete this copy?')) return;
@@ -125,13 +134,16 @@ const ManageResourcesPage = () => {
                 method: 'DELETE',
             });
             if (res.ok) {
-                alert('Copy deleted successfully.');
+                setAlertType('success');
+                setAlertMsg('Copy deleted successfully.');
                 if (expandedBookId) fetchCopiesByBook(expandedBookId);
             } else {
-                alert('Error deleting copy.');
+                setAlertType('error');
+                setAlertMsg('Error deleting copy.');
             }
         } catch (err) {
-            alert('Error deleting copy.');
+            setAlertType('error');
+            setAlertMsg('Error deleting copy.');
             console.error(err);
         }
     };
@@ -151,6 +163,11 @@ const ManageResourcesPage = () => {
     return (
         <div className="manage-layout">
             <Navbar/>
+            <GlobalAlert
+                message={alertMsg}
+                type={alertType}
+                onClose={() => setAlertMsg('')}
+            />
             <div className="resource-container">
                 <h2>Library: {library ? library.name : '...'}</h2>
 

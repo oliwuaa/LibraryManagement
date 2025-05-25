@@ -5,8 +5,9 @@ import '../styles/ManageResources.css';
 import '../styles/ReservationPage.css';
 import {fetchWithAuth} from '../Api.js';
 import DatePicker from 'react-datepicker'
-import { format } from 'date-fns';
+import {format} from 'date-fns';
 import 'react-datepicker/dist/react-datepicker.css';
+import GlobalAlert from "../components/GlobalAlert.jsx";
 
 const LoanPage = () => {
     const [loans, setLoans] = useState([]);
@@ -25,8 +26,8 @@ const LoanPage = () => {
     const [selectedCopyId, setSelectedCopyId] = useState(null);
     const [showDatePickerForLoan, setShowDatePickerForLoan] = useState(null);
     const [selectedDate, setSelectedDate] = useState(null);
-
-    const token = localStorage.getItem('accessToken');
+    const [alertMsg, setAlertMsg] = useState('');
+    const [alertType, setAlertType] = useState('info');
 
     useEffect(() => {
         const fetchUserAndLibraries = async () => {
@@ -39,8 +40,8 @@ const LoanPage = () => {
                     const libsRes = await fetchWithAuth(`/libraries`);
                     if (libsRes.ok) {
                         const libsData = await libsRes.json();
-                        const libsWithAll = [{ id: 'All', name: 'All Libraries' }, ...libsData];
-                        const sortedLibs = [libsWithAll[0], ...libsWithAll.slice(1).sort((a,b) => a.name.localeCompare(b.name))];
+                        const libsWithAll = [{id: 'All', name: 'All Libraries'}, ...libsData];
+                        const sortedLibs = [libsWithAll[0], ...libsWithAll.slice(1).sort((a, b) => a.name.localeCompare(b.name))];
                         setLibraries(sortedLibs);
                         setSelectedLibrary('All');
                         setManualLoanLibrary('All');
@@ -71,7 +72,7 @@ const LoanPage = () => {
                 const loansRes = await fetchWithAuth(loansUrl);
                 if (loansRes.ok) {
                     const loansData = await loansRes.json();
-                    setLoans(loansData.sort((a,b) => new Date(b.startDate) - new Date(a.startDate)));
+                    setLoans(loansData.sort((a, b) => new Date(b.startDate) - new Date(a.startDate)));
                 }
 
                 const booksRes = await fetchWithAuth(`/books`);
@@ -120,9 +121,6 @@ const LoanPage = () => {
     useEffect(() => {
         let result = [...loans];
 
-        console.log('Filtering loans with selectedUserId:', selectedUserId);
-        console.log('Loans:', loans);
-
         if (searchTitle.trim()) {
             result = result.filter(l => (l.title || '').toLowerCase().includes(searchTitle.toLowerCase()));
         }
@@ -141,6 +139,8 @@ const LoanPage = () => {
     }, [searchTitle, selectedUserId, loans, filterStatus]);
 
     const returnLoan = async (id) => {
+        setAlertType('');
+        setAlertMsg('');
         try {
             const res = await fetchWithAuth(`/loans/${id}/return`, {
                 method: 'POST'
@@ -152,13 +152,22 @@ const LoanPage = () => {
                     const data = await updatedLoans.json();
                     setLoans(data.sort((a, b) => new Date(b.startDate) - new Date(a.startDate)));
                 }
+                setAlertType('success');
+                setAlertMsg('Book returned successfully.')
+            } else {
+                setAlertType('error');
+                setAlertMsg('Failed to return book.');
             }
         } catch (err) {
-            console.error('Error returning loan:', err);
+            setAlertType('error');
+            setAlertMsg('Error returning loan.');
+            console.error(err);
         }
     };
 
     const extendLoan = async (id, newReturnDate) => {
+        setAlertType('');
+        setAlertMsg('');
         try {
             const formattedDate = format(newReturnDate, 'yyyy-MM-dd');
             const res = await fetchWithAuth(`/loans/${id}/extend?returnDate=${formattedDate}`, {
@@ -173,17 +182,25 @@ const LoanPage = () => {
                     const data = await updatedLoans.json();
                     setLoans(data.sort((a, b) => new Date(b.startDate) - new Date(a.startDate)));
                 }
+                setAlertType('success');
+                setAlertMsg('Loan extended successfully.')
             } else {
-                console.error('Failed to extend loan:', await res.text());
+                setAlertType('error');
+                setAlertMsg('Failed to extend loan.');
             }
         } catch (err) {
-            console.error('Error extending loan:', err);
+            setAlertType('error');
+            setAlertMsg('Error extending loan.');
+            console.error(err);
         }
     };
 
     const handleManualLoan = async () => {
+        setAlertType('');
+        setAlertMsg('');
         if (!selectedUserId || !selectedCopyId) {
-            alert('Please select both a user and a copy.');
+            setAlertType('warning');
+            setAlertMsg('Please select both a user and a copy.');
             return;
         }
 
@@ -192,11 +209,15 @@ const LoanPage = () => {
                 method: 'POST'
             });
 
-            if (!res.ok) throw new Error("Loan creation failed");
-
-            alert('Loan created successfully!');
-            setSelectedUserId(null);
-            setSelectedCopyId(null);
+            if (res.ok) {
+                setSelectedUserId(null);
+                setSelectedCopyId(null);
+                setAlertType('success');
+                setAlertMsg('Loan created successfully.');
+            } else {
+                setAlertType('error');
+                setAlertMsg('Failed to create loan');
+            }
 
             const loansRes = await fetchWithAuth(selectedLibrary === 'All' ? '/loans' : `/loans/library/${selectedLibrary}`);
             if (loansRes.ok) {
@@ -205,7 +226,8 @@ const LoanPage = () => {
             }
 
         } catch (err) {
-            alert('Error creating loan.');
+            setAlertType('error');
+            setAlertMsg('Error creating loan.');
             console.error(err);
         }
     };
@@ -282,9 +304,15 @@ const LoanPage = () => {
     return (
         <div className="manage-layout">
             <Navbar/>
+            <GlobalAlert
+                message={alertMsg}
+                type={alertType}
+                onClose={() => setAlertMsg('')}
+            />
             <div className="resource-container">
                 {userRole === 'ADMIN' && (
-                    <div className="manual-loan-section" style={{marginTop: '2rem', padding: '1rem', border: '1px solid #444', borderRadius: '6px'}}>
+                    <div className="manual-loan-section"
+                         style={{marginTop: '2rem', padding: '1rem', border: '1px solid #444', borderRadius: '6px'}}>
                         <h3>Manual Loan Creation</h3>
 
                         <div className="filter-container" style={{marginBottom: '1rem'}}>
@@ -468,7 +496,8 @@ const LoanPage = () => {
                                                                 >
                                                                     Extend
                                                                 </button>
-                                                                <button className="delete-btn" onClick={() => returnLoan(loan.id)}>
+                                                                <button className="delete-btn"
+                                                                        onClick={() => returnLoan(loan.id)}>
                                                                     Return
                                                                 </button>
                                                             </>
