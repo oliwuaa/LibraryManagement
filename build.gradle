@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.4.5'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'io.gatling.gradle' version '3.10.5'
 }
 
 group = 'com.example'
@@ -52,6 +53,8 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
 	implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
+
+	gatlingImplementation 'io.github.cdimascio:java-dotenv:5.2.2'
 }
 
 tasks.named('test') {
