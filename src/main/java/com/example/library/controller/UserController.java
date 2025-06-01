@@ -213,7 +213,7 @@ public class UserController {
     public ResponseEntity<String> updateUser(
             @Parameter(description = "ID of the user to update", example = "6")
             @PathVariable Long userId,
-            @RequestBody UserDTO user
+            @RequestBody UserInfoDTO user
     ) {
         userService.updateUser(userId, user);
         return ResponseEntity.ok("User updated successfully");

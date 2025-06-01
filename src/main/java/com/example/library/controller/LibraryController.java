@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -119,9 +120,9 @@ public class LibraryController {
     })
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN')")
-    public ResponseEntity<String> addLibrary(@RequestBody LibraryDTO library) {
+    public ResponseEntity<?> addLibrary(@Valid @RequestBody LibraryDTO library) {
         libraryService.addLibrary(library);
-        return ResponseEntity.ok("Library added successfully");
+        return ResponseEntity.ok().build();
     }
 
     @Operation(

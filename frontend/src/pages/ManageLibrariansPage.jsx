@@ -22,7 +22,7 @@ const LibrariansManagePage = () => {
         };
 
         const fetchLibrarians = async () => {
-            const res = await fetchWithAuth(`/users/search?role=LIBRARIAN&libraryId=${libraryId}`);
+            const res = await fetchWithAuth(`/users/library/${libraryId}/librarians`);
             if (res.ok) {
                 const data = await res.json();
                 setLibrarians(data);
@@ -42,8 +42,8 @@ const LibrariansManagePage = () => {
         setAlertMsg('');
         try {
             const res = await fetchWithAuth(`/users/${userId}`, {
-                method: 'PUT',
-                body: JSON.stringify({role: 'USER'}),
+                method: 'PATCH',
+                body: JSON.stringify('USER'),
             });
 
             if (res.ok) {

@@ -57,7 +57,8 @@ const ReservationsPage = () => {
 
             } catch (err) {
                 console.error(err);
-                setError('Error fetching data.');
+                setAlertType('error');
+                setAlertMsg('Error fetching data.');
             }
         };
 
@@ -259,10 +260,10 @@ const ReservationsPage = () => {
                                                     <span
                                                         className={`status-label status-${r.status.toLowerCase()}`}>{r.status}</span>
                                                 </p>
-                                                <p><strong>Created:</strong> {new Date(r.createdAt).toLocaleString()}
+                                                <p><strong>Created:</strong> {new Date(r.createdAt).toLocaleDateString()}
                                                 </p>
                                                 <p>
-                                                    <strong>Expires:</strong> {new Date(r.expirationDate).toLocaleString()}
+                                                    <strong>Expires:</strong> {new Date(r.expirationDate).toLocaleDateString()}
                                                 </p>
                                             </div>
                                             {r.status === 'WAITING' && (

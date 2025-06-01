@@ -65,8 +65,8 @@ const MyLibraryPage = () => {
                             reservations.filter(r => r.status === 'WAITING').map(res => (
                                 <div key={res.id} className="entry">
                                     <strong>Reservation #{res.id}</strong><br/>
-                                    User ID: {res.userId}<br/>
-                                    Copy ID: #{res.copyId}
+                                    User: {res.email} (#{res.userId})<br/>
+                                    Copy: {res.title} (#{res.copyId})
                                 </div>
                             ))
                         )}
@@ -80,8 +80,8 @@ const MyLibraryPage = () => {
                             loans.filter(loan => !loan.returnDate).map(loan => (
                                 <div key={loan.id} className="entry">
                                     <strong>Loan #{loan.id}</strong><br/>
-                                    User ID: {loan.userID}<br/>
-                                    Copy ID: #{loan.copyId}<br/>
+                                    User: {loan.email} (#{loan.userID})<br/>
+                                    Copy: {loan.title} (#{loan.copyId})<br/>
                                     Period: {loan.startDate} – {loan.endDate}
                                 </div>
                             ))
@@ -101,8 +101,8 @@ const MyLibraryPage = () => {
                         reservations.map(res => (
                             <div key={res.id} className="entry">
                                 <strong>Reservation #{res.id}</strong><br/>
-                                User ID: {res.userId}<br/>
-                                Copy ID: #{res.copyId}<br/>
+                                User: {res.email} (#{res.userId})<br/>
+                                Copy: {res.title} (#{res.copyId}<br/>
                                 Status: {res.status}
                             </div>
                         ))
@@ -120,8 +120,8 @@ const MyLibraryPage = () => {
                         loans.map(loan => (
                             <div key={loan.id} className="entry">
                                 <strong>Loan #{loan.id}</strong><br/>
-                                User ID: {loan.userID}<br/>
-                                Copy ID: #{loan.copyId}<br/>
+                                User: {loan.email} (#{loan.userID})<br/>
+                                Copy: {loan.title} (#{loan.copyId})<br/>
                                 Period: {loan.startDate} – {loan.endDate}<br/>
                                 {loan.returnDate && `Returned: ${loan.returnDate}`}
                             </div>

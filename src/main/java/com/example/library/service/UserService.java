@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -157,27 +158,52 @@ public class UserService {
     }
 
 
-    public void updateUser(Long userId, UserDTO user) {
+    public void updateUser(Long userId, UserInfoDTO user) {
         User newUser = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User with ID " + userId + " does not exist"));
 
-        if (user.name() != null && !user.name().isEmpty()) {
+        if (user.name() != null && !user.name().isBlank()) {
             newUser.setName(user.name());
         }
 
-        if (user.surname() != null && !user.surname().isEmpty()) {
+        if (user.surname() != null && !user.surname().isBlank()) {
             newUser.setSurname(user.surname());
         }
 
-        if (user.email() != null && !user.email().isEmpty()) {
-            if (userRepository.findByEmailAndActiveTrue(user.email()).isPresent()) {
+        if (user.email() != null && !user.email().isBlank()) {
+            Optional<User> existingUserWithEmail = userRepository.findByEmailAndActiveTrue(user.email());
+            if (existingUserWithEmail.isPresent() && !existingUserWithEmail.get().getId().equals(userId)) {
                 throw new BadRequestException("Email already taken");
             }
             newUser.setEmail(user.email());
         }
 
+        if (user.role() != null && !user.role().isBlank()) {
+            try {
+                UserRole newRole = UserRole.valueOf(user.role().toUpperCase());
+                newUser.setRole(newRole);
+
+                if (newRole == UserRole.LIBRARIAN) {
+                    if (user.libraryId() == null) {
+                        throw new BadRequestException("Library ID must be provided for role LIBRARIAN");
+                    }
+
+                    Library library = libraryRepository.findById(user.libraryId())
+                            .orElseThrow(() -> new NotFoundException("Library with ID " + user.libraryId() + " does not exist"));
+
+                    newUser.setLibrary(library);
+                } else {
+                    newUser.setLibrary(null);
+                }
+
+            } catch (IllegalArgumentException e) {
+                throw new BadRequestException("Invalid role: " + user.role());
+            }
+        }
+
         userRepository.save(newUser);
     }
+
 
     public void changeRole(Long userId, UserRole role, Long libraryId) {
         User user = userRepository.findById(userId)

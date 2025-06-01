@@ -369,7 +369,6 @@ const LoanPage = () => {
                 )}
 
                 <br></br>
-                <br></br>
                 <h3>Loans</h3>
 
                 <div className="search-section">

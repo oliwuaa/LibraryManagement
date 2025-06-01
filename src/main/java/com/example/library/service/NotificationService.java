@@ -17,11 +17,11 @@ public class NotificationService {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo(toEmail);
-            message.setSubject("Powiadomienie o opóźnieniu zwrotu książki");
-            message.setText("Drogi użytkowniku,\n\n" +
-                    "Przypominamy, że termin zwrotu książki '" + loan.getCopy().getBook().getTitle() + "' już minął.\n" +
-                    "Prosimy o jak najszybszy zwrot książki.\n\n" +
-                    "Pozdrawiamy,\n" + loan.getCopy().getLibrary().getName());
+            message.setSubject("Overdue Book Return Notification");
+            message.setText("Dear User,\n\n" +
+                    "This is a reminder that the return date for the book titled '" + loan.getCopy().getBook().getTitle() + "' has passed.\n" +
+                    "Please return the book as soon as possible.\n\n" +
+                    "Best regards,\n" + loan.getCopy().getLibrary().getName());
             mailSender.send(message);
         } catch (MailException e) {
             e.printStackTrace();
@@ -32,11 +32,11 @@ public class NotificationService {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo(toEmail);
-            message.setSubject("Powiadomienie o wypożyczeniu książki");
-            message.setText("Drogi użytkowniku,\n\n" +
-                    "Wypożyczyłeś '" + loan.getCopy().getBook().getTitle() + "'.\n" +
-                    "Data zwrotu powyższej pozycji mija : " + loan.getFormattedEndDate()  + ".\n\n" +
-                    "Pozdrawiamy,\n" + loan.getCopy().getLibrary().getName());
+            message.setSubject("Book Loan Confirmation");
+            message.setText("Dear User,\n\n" +
+                    "You have successfully borrowed the book titled '" + loan.getCopy().getBook().getTitle() + "'.\n" +
+                    "The return due date for this book is: " + loan.getFormattedEndDate()  + ".\n\n" +
+                    "Best regards,\n" + loan.getCopy().getLibrary().getName());
             mailSender.send(message);
         } catch (MailException e) {
             e.printStackTrace();
@@ -47,10 +47,10 @@ public class NotificationService {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo(toEmail);
-            message.setSubject("Przypomnienie o odebraniu zarezerwowanej pozycji");
-            message.setText("Drogi użytkowniku,\n\n" +
-                    "Przypominamy, że pozostał 1 dzień do odebrania zarezerwowanej ksiązki '" + reservation.getCopy().getBook().getTitle() + "'.\n" +
-                    "Pozdrawiamy,\n" + reservation.getCopy().getLibrary().getName());
+            message.setSubject(" Reminder: 1 Day Left to Pick Up Your Reserved Book");
+            message.setText("Dear User,\n\n" +
+                    "This is a reminder that you have 1 day left to pick up the reserved book titled '" + reservation.getCopy().getBook().getTitle() + "'.\n" +
+                    "Best regards,\n" + reservation.getCopy().getLibrary().getName());
             mailSender.send(message);
         } catch (MailException e) {
             e.printStackTrace();
@@ -61,10 +61,10 @@ public class NotificationService {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo(toEmail);
-            message.setSubject("Powiadomienie o anulowaniu rezerwacji");
-            message.setText("Drogi użytkowniku,\n\n" +
-                    "Anulowaliśmy twoją rezerwację książki '" + reservation.getCopy().getBook().getTitle() + "'.\n" +
-                    "Pozdrawiamy,\n" + reservation.getCopy().getLibrary().getName());
+            message.setSubject("Reservation Cancellation Notice");
+            message.setText("Dear User,\n\n" +
+                    "Your reservation for the book titled '" + reservation.getCopy().getBook().getTitle() + "' has been cancelled.\n" +
+                    "Best regards,\n" + reservation.getCopy().getLibrary().getName());
             mailSender.send(message);
         } catch (MailException e) {
             e.printStackTrace();
@@ -75,12 +75,12 @@ public class NotificationService {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo(toEmail);
-            message.setSubject("Powiadomienie o akceptacji rezerwacji");
-            message.setText("Drogi użytkowniku,\n\n" +
-                    "Pomyślnie zarezerwowałeś książke '" + reservation.getCopy().getBook().getTitle() + "'.\n" +
-                    "Pamiętaj, że masz 2 dni na jej odebranie.\n" +
-                    "Możesz odebrać tą książke do : " + reservation.getFormattedExpirationDate()  + ".\n\n" +
-                    "Pozdrawiamy,\n" + reservation.getCopy().getLibrary().getName());
+            message.setSubject("Reservation Confirmed");
+            message.setText("Dear User,\n\n" +
+                    "Your reservation for the book titled '" + reservation.getCopy().getBook().getTitle() + "' has been successfully confirmed.\n" +
+                    "Please note that you have 2 days to pick up the book.\n" +
+                    "You can collect it until: " + reservation.getFormattedExpirationDate()  + ".\n\n" +
+                    "Best regards,\n" + reservation.getCopy().getLibrary().getName());
             mailSender.send(message);
         } catch (MailException e) {
             e.printStackTrace();
