@@ -261,6 +261,25 @@ public class LoanController {
 
     @GetMapping("/me")
     @PreAuthorize("hasAnyRole('USER')")
+    @Operation(
+            summary = "Get authenticated user's loans",
+            description = "Returns a list of all loans for the currently authenticated user."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "List of loans returned successfully",
+                    content = @Content(
+                            mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = LoanDTO.class))
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Unauthorized - user not authenticated",
+                    content = @Content
+            )
+    })
     public ResponseEntity<List<LoanDTO>> getMyLoans() {
         List<LoanDTO> loans = loanService.getMyLoans();
         return ResponseEntity.ok(loans);
@@ -268,14 +287,33 @@ public class LoanController {
 
     @GetMapping("/me/active")
     @PreAuthorize("hasAnyRole('USER')")
+    @Operation(
+            summary = "Get authenticated user's active loans",
+            description = "Returns a list of all active (not returned) loans for the currently authenticated user."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "List of active loans returned successfully",
+                    content = @Content(
+                            mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = LoanDTO.class))
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Unauthorized - user not authenticated",
+                    content = @Content
+            )
+    })
     public ResponseEntity<List<LoanDTO>> getMyActiveLoans() {
         List<LoanDTO> loans = loanService.getMyActiveLoans();
         return ResponseEntity.ok(loans);
     }
 
     @Operation(
-            summary = "Get all loans in a library.",
-            description = "Returns a list of all loans related to a specific library ID."
+            summary = "Get all loans in a library",
+            description = "Returns a list of all loans associated with a specific library, identified by its ID."
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -288,12 +326,25 @@ public class LoanController {
             ),
             @ApiResponse(
                     responseCode = "204",
-                    description = "No loans found",
+                    description = "No loans found for the specified library",
                     content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Forbidden - user not authorized to access this library's loans",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Library not found",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(example = "{\"error\": \"Library with ID 1 does not exist\"}")
+                    )
             )
     })
     @GetMapping("/library/{libraryId}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('LIBRARIAN') and @authorizationService.isLibrarianOfLibrary(#libraryId)")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('LIBRARIAN') and @authorizationService.isLibrarianOfLibrary(#libraryId))")
     public ResponseEntity<List<LoanDTO>> getLoansByLibrary(
             @Parameter(description = "Library ID", example = "1") @PathVariable Long libraryId
     ) {
@@ -303,5 +354,4 @@ public class LoanController {
         }
         return ResponseEntity.ok(loans);
     }
-
 }

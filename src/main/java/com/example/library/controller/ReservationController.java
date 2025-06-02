@@ -213,6 +213,10 @@ public class ReservationController {
         return ResponseEntity.ok("Reservation canceled successfully");
     }
 
+    @Operation(
+            summary = "Get current user's reservations.",
+            description = "Returns a list of reservations for the currently authenticated user."
+    )
     @GetMapping("/me")
     @PreAuthorize("hasAnyRole('USER')")
     public ResponseEntity<List<ReservationDTO>> getMyReservations() {
@@ -220,6 +224,10 @@ public class ReservationController {
         return ResponseEntity.ok(reservations);
     }
 
+    @Operation(
+            summary = "Get current user's active reservations.",
+            description = "Returns a list of active (not cancelled or expired) reservations for the currently authenticated user."
+    )
     @GetMapping("/me/active")
     @PreAuthorize("hasAnyRole('USER')")
     public ResponseEntity<List<ReservationDTO>> getMyActiveReservations() {

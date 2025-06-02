@@ -340,6 +340,25 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
+    @Operation(
+            summary = "Get current user info.",
+            description = "Returns information about the currently authenticated user."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Current user info retrieved successfully",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = UserInfoDTO.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Unauthorized - user not authenticated",
+                    content = @Content
+            )
+    })
     @GetMapping("/me")
     @PreAuthorize("hasAnyRole('ADMIN','LIBRARIAN','USER')")
     public UserInfoDTO getCurrentUserInfo() {

@@ -89,8 +89,30 @@ public class LibraryController {
         return ResponseEntity.ok(libraryService.getLibraryById(libraryID));
     }
 
+    @Operation(
+            summary = "Get current librarian's library.",
+            description = "Returns the library assigned to the currently authenticated librarian."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Library returned successfully",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = Library.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Library not found for the current librarian",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(example = "{\"error\": \"No library assigned to the current librarian.\"}")
+                    )
+            )
+    })
     @GetMapping("/me")
-    @PreAuthorize("hasAnyRole('LIBRARIAN')")
+    @PreAuthorize("hasRole('LIBRARIAN')")
     public ResponseEntity<Library> getMyLibrary() {
         Library library = libraryService.getLibraryForCurrentLibrarian();
         return ResponseEntity.ok(library);
@@ -152,7 +174,7 @@ public class LibraryController {
     })
     @DeleteMapping("/{libraryId}")
     @PreAuthorize("hasAnyRole('ADMIN')")
-    public ResponseEntity<String> deleteLibrary(@PathVariable Long libraryId) {
+    public ResponseEntity<String> deleteLibrary(@Parameter(description = "ID of the library to delete", example = "12") @PathVariable Long libraryId) {
         boolean deleted = libraryService.deleteLibrary(libraryId);
 
         if (deleted) {
@@ -246,5 +268,4 @@ public class LibraryController {
 
         return ResponseEntity.ok(libraries);
     }
-
 }

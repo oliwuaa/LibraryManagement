@@ -2,7 +2,10 @@
 
 ## 📖 Opis projektu
 
-Library Management System to aplikacja umożliwiająca zarządzanie biblioteką, książkami, egzemplarzami oraz procesem wypożyczania i rezerwacji. Użytkownicy mogą przeglądać dostępne książki, rezerwować je oraz wypożyczać. Bibliotekarze mają możliwość zarządzania zasobami biblioteki.
+- Library Management System to aplikacja umożliwiająca zarządzanie bibliotekami, książkami, egzemplarzami oraz procesem wypożyczania i rezerwacji.
+- Użytkownicy mogą przeglądać dostępne książki, rezerwować je oraz przeglądać swoje wypożyczenia i rezerwacje.
+- Bibliotekarze mają możliwość zarządzania zasobami biblioteki, wypożyczeniami oraz rezerwacjami użytkowników ze swojej biblioteki.
+- Admin posiada uprawnienia bibliotekarza, a ponad to zarządza wszystkimi użytkownikami i bibliotekami.
 
 ---
 
@@ -52,8 +55,9 @@ JWT_SECRET=your_super_secure_secret_key_for_jwt
 ### 4️⃣ Uruchomienie aplikacji z Dockerem
 
 Jeśli chcesz uruchomić aplikację z wykorzystaniem Docker i Docker Compose, wykonaj następujące kroki:
-Zbuduj i uruchom aplikację z Docker Compose:
-W terminalu, w katalogu głównym projektu, uruchom polecenie:
+1) Sprawdź, czy Docker i Docker Compose są uruchomione
+2) Zbuduj i uruchom aplikację z Docker Compose:
+3) W terminalu, w katalogu głównym projektu, uruchom polecenie:
 
 ```bash
 docker-compose up --build 
@@ -62,6 +66,19 @@ docker-compose up --build
 - Aplikacja backendowa będzie dostępna pod adresem: [http://localhost:8080](http://localhost:8080)
 - Aplikacja frontendowa (React) będzie dostępna pod adresem: [http://localhost:3000](http://localhost:3000)
 - Wszystkie wysyłane maile będą rejestrowane w narzędziu MailHog, które jest dostępne pod adresem:[http://localhost:8025](http://localhost:8025)
+
+
+### 5️⃣ Uruchomienie testów Gatling
+Aby uruchomić testy Gatling wpisz poniższą komendę, a następnie wybierz 
+
+```bash
+./gradlew gatlingRun
+```
+
+Po wykonaniu testów raporty znajdziesz w katalogu:
+```bash
+build/reports/gatling/
+```
 
 ---
 
