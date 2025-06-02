@@ -14,6 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -24,6 +25,7 @@ public class ReservationService {
     private final CopyRepository copyRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final Clock clock;
 
     public List<ReservationDTO> getMyReservations() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -150,8 +152,8 @@ public class ReservationService {
         Reservation reservation = Reservation.builder()
                 .user(user)
                 .copy(copy)
-                .createdAt(LocalDate.now())
-                .expirationDate(LocalDate.now().plusDays(2))
+                .createdAt(LocalDate.now(clock))
+                .expirationDate(LocalDate.now(clock).plusDays(2))
                 .status(ReservationStatus.WAITING)
                 .build();
 
@@ -179,7 +181,7 @@ public class ReservationService {
 
     @Scheduled(cron = "0 */5 * * * *")
     public void checkReservations() {
-        List<Reservation> expiredReservations = reservationRepository.findAllByExpirationDateBeforeAndStatus(LocalDate.now(), ReservationStatus.WAITING);
+        List<Reservation> expiredReservations = reservationRepository.findAllByExpirationDateBeforeAndStatus(LocalDate.now(clock), ReservationStatus.WAITING);
 
         for (Reservation reservation : expiredReservations) {
             reservation.setStatus(ReservationStatus.EXPIRED);
@@ -191,7 +193,7 @@ public class ReservationService {
             copyRepository.save(copy);
         }
 
-        List<Reservation> reservationsWithOneDayLeft = reservationRepository.findByExpirationDate(LocalDate.now().plusDays(1));
+        List<Reservation> reservationsWithOneDayLeft = reservationRepository.findByExpirationDate(LocalDate.now(clock).plusDays(1));
         for (Reservation reservation : reservationsWithOneDayLeft) {
             notificationService.sendOneDayLeftNotification(reservation.getUser().getEmail(), reservation);
         }

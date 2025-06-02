@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
@@ -24,6 +25,7 @@ public class LibraryService {
     private final LoanRepository loanRepository;
     private final ReservationRepository reservationRepository;
     private final UserService userService;
+    private final Clock clock;
 
     public List<Library> getAllLibraries() {
         return libraryRepository.findAll();
@@ -77,7 +79,7 @@ public class LibraryService {
     public void endLoan(Long copyId) {
         loanRepository.findLoanByCopy_Id(copyId)
                 .ifPresent(loan -> {
-                    loan.setReturnDate(LocalDate.now());
+                    loan.setReturnDate(LocalDate.now(clock));
                     loanRepository.save(loan);
                 });
     }

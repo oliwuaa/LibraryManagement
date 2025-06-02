@@ -16,6 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -28,6 +29,7 @@ public class LoanService {
     private final CopyRepository copyRepository;
     private final ReservationRepository reservationRepository;
     private final NotificationService notificationService;
+    private final Clock clock;
 
 
     public List<LoanDTO> getAllLoans() {
@@ -171,8 +173,8 @@ public class LoanService {
         Loan loan = Loan.builder()
                 .user(user)
                 .copy(copy)
-                .startDate(LocalDate.now())
-                .endDate(LocalDate.now().plusWeeks(2))
+                .startDate(LocalDate.now(clock))
+                .endDate(LocalDate.now(clock).plusWeeks(2))
                 .build();
         loanRepository.save(loan);
 
@@ -190,7 +192,7 @@ public class LoanService {
         Loan loan = loanRepository.findByIdAndReturnDateIsNull(loanId)
                 .orElseThrow(() -> new BadRequestException("This book has already been returned or loan doesn't exist"));
 
-        loan.setReturnDate(LocalDate.now());
+        loan.setReturnDate(LocalDate.now(clock));
         loan.getCopy().setStatus(CopyStatus.AVAILABLE);
     }
 
@@ -208,7 +210,7 @@ public class LoanService {
 
     @Scheduled(cron = "0 */5 * * * *")
     public void checkLoans() {
-        List<Loan> overdueLoans = loanRepository.findByEndDateBeforeAndReturnDateIsNull(LocalDate.now());
+        List<Loan> overdueLoans = loanRepository.findByEndDateBeforeAndReturnDateIsNull(LocalDate.now(clock));
         for (Loan loan : overdueLoans) {
             notificationService.sendOverdueNotification(loan.getUser().getEmail(), loan);
         }
