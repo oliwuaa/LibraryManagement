@@ -3,78 +3,122 @@ package simulations
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
 import scala.concurrent.duration._
-import io.github.cdimascio.dotenv.Dotenv
-import java.util.UUID
 
 class UserControllerSimulation extends Simulation {
-
-  val dotenv = Dotenv.configure()
-    .directory(".")
-    .ignoreIfMalformed()
-    .ignoreIfMissing()
-    .load()
-
-  val token = dotenv.get("JWT_SECRET")
 
   val httpProtocol = http
     .baseUrl("http://localhost:8080")
     .acceptHeader("application/json")
-    .authorizationHeader(s"Bearer $token")
+    .contentTypeHeader("application/json")
 
-  val email = "john.doe@example.com"
-  val userId = "21"
-  val libraryId = "3"
-
-  val getAllUsers = exec(http("Get All Users").get("/users"))
-
-  val getMe = exec(http("Get Me").get("/users/me"))
-
-  val fetchUserId = exec(
-    http("Get User ID by Email")
-      .get(s"/users/search?email=$email")
-      .check(jsonPath("$[0].id").saveAs("userId"))
+  val users = Map(
+    "admin" -> ("admin@example.com", "admin"),
+    "librarian" -> ("librarian@example.com", "librarian"),
+    "user" -> ("user@example.com", "user")
   )
 
-  val getUserById = exec(
-    http("Get User by ID")
-      .get(s"/users/$userId")
+  def login(role: String) = exec(
+    http(s"Login $role")
+      .post("/auth/login")
+      .body(StringBody(session => s"""{"email":"${users(role)._1}","password":"${users(role)._2}"}""")).asJson
       .check(status.is(200))
-  )
+      .check(jsonPath("$.accessToken").exists.saveAs("jwt"))
+  ).exitHereIfFailed
 
-  val getLibrariansFromLibrary = exec(
-    http("Get Librarians From Library")
-      .get(s"/users/library/$libraryId/librarians")
-      .check(status.is(200))
-  )
+  def withAuth = exec(session => session.set("Authorization", s"Bearer ${session("jwt").as[String]}"))
 
-  val searchLibrarians = exec(
-    http("Search Librarians")
-      .get("/users/search?role=LIBRARIAN")
-      .check(status.is(200))
-  )
+  def authorizedGet(name: String, url: String) = {
+    exec(withAuth)
+      .exec(
+        http(name)
+          .get(url)
+          .header("Authorization", "${Authorization}")
+          .check(status.saveAs("httpStatus"))
+      )
+  }
 
-  val searchUsers = exec(
-    http("Search Users")
-      .get("/users/search?role=USER")
-      .check(status.is(200))
-  )
+  def authorizedPost(name: String, url: String, body: String) = {
+    exec(withAuth)
+      .exec(
+        http(name)
+          .post(url)
+          .header("Authorization", "${Authorization}")
+          .body(StringBody(body)).asJson
+          .check(status.saveAs("httpStatus"))
+      )
+  }
 
-  val scn = scenario("User Controller Endpoints")
-    .exec(getMe)
+  def authorizedPut(name: String, url: String, body: String) = {
+    exec(withAuth)
+      .exec(
+        http(name)
+          .put(url)
+          .header("Authorization", "${Authorization}")
+          .body(StringBody(body)).asJson
+          .check(status.saveAs("httpStatus"))
+      )
+  }
+
+  def authorizedPatch(name: String, url: String, body: String) = {
+    exec(withAuth)
+      .exec(
+        http(name)
+          .patch(url)
+          .header("Authorization", "${Authorization}")
+          .body(StringBody(body)).asJson
+          .check(status.saveAs("httpStatus"))
+      )
+  }
+
+  def authorizedDelete(name: String, url: String) = {
+    exec(withAuth)
+      .exec(
+        http(name)
+          .delete(url)
+          .header("Authorization", "${Authorization}")
+          .check(status.saveAs("httpStatus"))
+      )
+  }
+
+  val exampleUserId = 6L
+  val exampleLibraryId = 1L
+
+  val adminScenario = scenario("Admin UserController Actions")
+    .exec(login("admin"))
     .pause(1)
-    .exec(fetchUserId)
+    .exec(authorizedGet("Get all users", "/users"))
     .pause(1)
-    .exec(getUserById)
+    .exec(authorizedGet("Get user by id", s"/users/$exampleUserId"))
     .pause(1)
-    .exec(getAllUsers)
+    .exec(authorizedGet("Search users", "/users/search?name=John"))
     .pause(1)
-    .exec(searchLibrarians)
+    .exec(authorizedGet("Get librarians by library", s"/users/library/$exampleLibraryId/librarians"))
     .pause(1)
-    .exec(searchUsers)
+    .exec(authorizedPut("Update user", s"/users/$exampleUserId", """{"id":6,"email":"new@email.com","name":"Updated","surname":"User","role":"USER","library":null}"""))
     .pause(1)
-    .exec(getLibrariansFromLibrary)
+    .exec(authorizedPatch("Change user role", s"/users/$exampleUserId?libraryId=$exampleLibraryId", "\"LIBRARIAN\""))
+    .pause(1)
+    .exec(authorizedDelete("Delete user", s"/users/$exampleUserId"))
+    .pause(1)
+
+  val librarianScenario = scenario("Librarian UserController Actions")
+    .exec(login("librarian"))
+    .pause(1)
+    .exec(authorizedGet("Get self by ID", s"/users/$exampleUserId"))
+    .pause(1)
+    .exec(authorizedGet("Search users", "/users/search?email=librarian"))
+    .pause(1)
+
+  val userScenario = scenario("User UserController Actions")
+    .exec(login("user"))
+    .pause(1)
+    .exec(authorizedGet("Get current user info", "/users/me"))
+    .pause(1)
+    .exec(authorizedGet("Get self by ID", s"/users/$exampleUserId"))
 
   setUp(
-    scn.inject(rampUsers(20).during(10.seconds))
+    adminScenario.inject(rampUsers(10).during(10.seconds)),
+    librarianScenario.inject(rampUsers(10).during(10.seconds)),
+    userScenario.inject(rampUsers(10).during(10.seconds))
   ).protocols(httpProtocol)
 }

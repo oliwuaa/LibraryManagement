@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -183,7 +184,7 @@ public class UserController {
     })
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(
-            @RequestBody UserRegistrationDTO user
+            @RequestBody @Valid UserRegistrationDTO user
     ) {
         userService.addUser(user);
         return ResponseEntity.ok("User registered successfully");
@@ -213,7 +214,7 @@ public class UserController {
     public ResponseEntity<String> updateUser(
             @Parameter(description = "ID of the user to update", example = "6")
             @PathVariable Long userId,
-            @RequestBody UserInfoDTO user
+            @RequestBody @Valid UserInfoDTO user
     ) {
         userService.updateUser(userId, user);
         return ResponseEntity.ok("User updated successfully");
@@ -352,5 +353,4 @@ public class UserController {
                 user.getLibrary() != null ? user.getLibrary().getId() : null
         );
     }
-
 }
