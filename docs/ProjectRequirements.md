@@ -2,14 +2,14 @@
 - Domenę i zakres funkcjonalny należy ustalić z prowadzącym  ✅
 - Kod źródłowy aplikacji należy utrzymywać na Githubie lub Gitlabie ✅
 - Kod powinien być automatycznie budowany (gradle lub maven), a wynik budowania (pass/fail) powinien być widoczny w repozytorium. ✅
-- Kod powinien być automatycznie testowany, przynajmniej na dwóch poziomach: jednostkowo i poprzez interfejs HTTP. 
+- Kod powinien być automatycznie testowany, przynajmniej na dwóch poziomach: jednostkowo✅ i poprzez interfejs HTTP. 
 	- Testowanie powinno być elementem budowania projektu.
 	- Wyniki testowania powinny być widoczne w repozytorium.
 - Aplikację należy przetestować wydajnościowo z użyciem np. Gatlinga. Nie powinien to być element budowania automatycznego, ale powinno być możliwe uruchomienie takiego testu jedną komendą. ✅
 - Kod powinien być automatycznie skanowany pod kątem bezpieczeństwa (np Snyk). ✅
 - Dokumentację API należy udostępnić w formie Swaggera. ✅
 - Usługa powinna udostępniać poprawnie skonstruowane REST API, łącznie z obsługą błędów. ✅
-- Musi być wykorzystywana data i czas, z poprawnym użyciem klasy Clock. Funkcjonalność powinna obejmować strefy czasowe, które należy poprawnie obsłużyć.
+- Musi być wykorzystywana data i czas, z poprawnym użyciem klasy Clock. Funkcjonalność powinna obejmować strefy czasowe, które należy poprawnie obsłużyć. ✅
 - Dependency Injection: należy używać wstrzykiwania przez konstruktor ✅
 - Należy używać bibliotekę do logów.
 - Proces budowania powinien wytwarzać gotowy do wdrożenia artefakt: plik jar.  Należy dostarczyć pliki: Dockerfile oraz Docker Compose, zawierające kompletne środowisko uruchomieniowe. ✅

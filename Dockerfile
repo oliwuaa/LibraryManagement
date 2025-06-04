@@ -1,7 +1,7 @@
 FROM gradle:jdk21 AS build
 WORKDIR /app
 COPY . .
-RUN gradle build --no-daemon -x test
+RUN gradle build --no-daemon
 
 
 FROM openjdk:21-jdk
