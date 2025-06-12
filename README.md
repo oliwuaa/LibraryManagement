@@ -66,10 +66,11 @@ docker-compose up --build
 - Aplikacja backendowa będzie dostępna pod adresem: [http://localhost:8080](http://localhost:8080)
 - Aplikacja frontendowa (React) będzie dostępna pod adresem: [http://localhost:3000](http://localhost:3000)
 - Wszystkie wysyłane maile będą rejestrowane w narzędziu MailHog, które jest dostępne pod adresem:[http://localhost:8025](http://localhost:8025)
+- Panel Kibana (logi i monitoring) będzie dostępny pod adresem: [http://localhost:5601](http://localhost:5601)
 
 
 ### 5️⃣ Uruchomienie testów Gatling
-Aby uruchomić testy Gatling wpisz poniższą komendę, a następnie wybierz 
+Aby uruchomić testy Gatling wpisz poniższą komendę, a następnie wpisz numer testu z listy, który chcesz wykonać
 
 ```bash
 ./gradlew gatlingRun

@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import Select from 'react-select';
 import Navbar from '../components/Navbar';
 import '../styles/ManageResources.css';
@@ -24,16 +24,21 @@ const ManageUsersPage = () => {
     const [alertMsg, setAlertMsg] = useState('');
     const [alertType, setAlertType] = useState('info');
 
+    const debounceTimeout = useRef(null);
+    const userBeingEdited = users.find(u => u.id === editingUserId);
+    const usersToRender = editingUserId && userBeingEdited ? [userBeingEdited] : filteredUsers;
+
     useEffect(() => {
         fetchUsers();
         fetchLibraries();
     }, []);
 
     const fetchUsers = async () => {
-        const res = await fetchWithAuth('/users');
+        const res = await fetchWithAuth('/users/active');
         if (res?.ok) {
             const data = await res.json();
             setUsers(data);
+            setFilteredUsers(data);
         }
     };
 
@@ -45,25 +50,23 @@ const ManageUsersPage = () => {
         }
     };
 
-    const userOptions = [...users]
-        .sort((a, b) => a.email.localeCompare(b.email))
-        .map(u => ({
-            value: u.email,
-            label: u.email
-        }));
-
     useEffect(() => {
-        let filtered = [...users];
-        if (roleFilter !== 'ALL') {
-            filtered = filtered.filter(u => u.role === roleFilter);
+        if (debounceTimeout.current) {
+            clearTimeout(debounceTimeout.current);
         }
-        if (searchEmail.trim()) {
-            filtered = filtered.filter(u => u.email.toLowerCase().includes(searchEmail.toLowerCase()));
-        }
-        if (searchName.trim()) {
-            filtered = filtered.filter(u => u.name.toLowerCase().includes(searchName.toLowerCase()));
-        }
-        setFilteredUsers(filtered);
+        debounceTimeout.current = setTimeout(() => {
+            let filtered = [...users];
+            if (roleFilter !== 'ALL') {
+                filtered = filtered.filter(u => u.role === roleFilter);
+            }
+            if (searchEmail.trim()) {
+                filtered = filtered.filter(u => u.email.toLowerCase().includes(searchEmail.toLowerCase()));
+            }
+            if (searchName.trim()) {
+                filtered = filtered.filter(u => u.name.toLowerCase().includes(searchName.toLowerCase()));
+            }
+            setFilteredUsers(filtered);
+        }, 300);
     }, [roleFilter, searchEmail, searchName, users]);
 
     const handleEdit = (user) => {
@@ -97,8 +100,10 @@ const ManageUsersPage = () => {
             });
 
             if (res?.ok) {
+                setUsers(prevUsers => prevUsers.map(u =>
+                    u.id === editingUserId ? {...u, ...userDataToSend} : u
+                ));
                 setEditingUserId(null);
-                fetchUsers();
                 setAlertType('success');
                 setAlertMsg(`Changes saved successfully!`);
             } else {
@@ -136,14 +141,17 @@ const ManageUsersPage = () => {
         }
     };
 
+    const userOptions = [...users]
+        .sort((a, b) => a.email.localeCompare(b.email))
+        .map(u => ({
+            value: u.email,
+            label: u.email
+        }));
+
     const customSelectStyles = {
         option: (base, state) => ({
             ...base,
-            backgroundColor: state.isSelected
-                ? '#4b5563'
-                : state.isFocused
-                    ? '#374151'
-                    : '#1f2937',
+            backgroundColor: state.isSelected ? '#4b5563' : state.isFocused ? '#374151' : '#1f2937',
             color: 'white',
             cursor: 'pointer',
         }),
@@ -178,14 +186,9 @@ const ManageUsersPage = () => {
     return (
         <div className="manage-layout">
             <Navbar/>
-            <GlobalAlert
-                message={alertMsg}
-                type={alertType}
-                onClose={() => setAlertMsg('')}
-            />
+            <GlobalAlert message={alertMsg} type={alertType} onClose={() => setAlertMsg('')}/>
             <div className="resource-container">
                 <h2>Manage Users</h2>
-
                 <div className="search-section">
                     <div className="filter-container" style={{marginBottom: '1rem'}}>
                         <label>Filter by Role:</label>
@@ -200,7 +203,7 @@ const ManageUsersPage = () => {
                     </div>
 
                     <div className="filter-container">
-                        <label htmlFor="user-select">Search by User Email:</label>
+                        <label>Search by User Email:</label>
                         <Select
                             options={userOptions}
                             value={searchEmail ? {label: searchEmail, value: searchEmail} : null}
@@ -214,64 +217,51 @@ const ManageUsersPage = () => {
                 </div>
 
                 <div className="book-list-section">
-                    {filteredUsers.length === 0 ? (
+                    {usersToRender.length === 0 ? (
                         <p>No users found.</p>
                     ) : (
                         <div className="book-list-grid">
-                            {filteredUsers.map(user => (
+                            {usersToRender.map(user => (
                                 <div key={user.id} className="book-holder">
                                     <div className="book-header" style={{cursor: 'default'}}>
                                         <div className="book-info">
                                             <h4>User #{user.id}</h4>
                                             {editingUserId === user.id ? (
                                                 <>
-                                                    <p>
-                                                        <strong>Name:</strong>{' '}
+                                                    <p><strong>Name:</strong>{' '}
                                                         <input
                                                             value={editFormData.name}
                                                             onChange={e => handleEditChange('name', e.target.value)}
                                                         />
                                                     </p>
-                                                    <p>
-                                                        <strong>Email:</strong>{' '}
+                                                    <p><strong>Email:</strong>{' '}
                                                         <input
                                                             value={editFormData.email}
                                                             onChange={e => handleEditChange('email', e.target.value)}
                                                         />
                                                     </p>
-                                                    <p>
-                                                        <strong>Role:</strong>{' '}
+                                                    <p><strong>Role:</strong>{' '}
                                                         <Select
-                                                            options={[
-                                                                {value: 'USER', label: 'User'},
-                                                                {value: 'LIBRARIAN', label: 'Librarian'},
-                                                                {value: 'ADMIN', label: 'Admin'}
-                                                            ]}
-                                                            value={{
-                                                                value: editFormData.role,
-                                                                label: editFormData.role.charAt(0) + editFormData.role.slice(1).toLowerCase()
-                                                            }}
+                                                            options={roleOptions}
+                                                            value={roleOptions.find(opt => opt.value === editFormData.role)}
                                                             onChange={selected => handleEditChange('role', selected.value)}
                                                             styles={customSelectStyles}
                                                             isSearchable={false}
                                                         />
                                                     </p>
                                                     {editFormData.role === 'LIBRARIAN' && (
-                                                        <p>
-                                                            <strong>Library:</strong>{' '}
+                                                        <p><strong>Library:</strong>{' '}
                                                             <Select
                                                                 options={libraries.map(lib => ({
                                                                     value: lib.id,
                                                                     label: lib.name
                                                                 }))}
-                                                                value={
-                                                                    libraries.find(lib => lib.id === editFormData.libraryId)
-                                                                        ? {
-                                                                            value: editFormData.libraryId,
-                                                                            label: libraries.find(lib => lib.id === editFormData.libraryId).name
-                                                                        }
-                                                                        : null
-                                                                }
+                                                                value={libraries.find(lib => lib.id === editFormData.libraryId)
+                                                                    ? {
+                                                                        value: editFormData.libraryId,
+                                                                        label: libraries.find(lib => lib.id === editFormData.libraryId).name
+                                                                    }
+                                                                    : null}
                                                                 onChange={selected => handleEditChange('libraryId', selected.value)}
                                                                 styles={customSelectStyles}
                                                                 placeholder="Select library"

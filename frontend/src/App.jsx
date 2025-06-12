@@ -15,8 +15,6 @@ import ManageLibrariansPage from './pages/ManageLibrariansPage';
 import HomeLibPage from './pages/HomeLibPage';
 import HomeAdminPage from './pages/HomeAdminPage';
 import HomeUserPage from './pages/HomeUserPage';
-import ProtectedRoute from './components/ProtectedRoute';
-
 
 const App = () => {
     return (
@@ -25,111 +23,19 @@ const App = () => {
                 <Route path="/" element={<WelcomePage/>}/>
                 <Route path="/login" element={<LoginPage/>}/>
                 <Route path="/register" element={<RegisterPage/>}/>
-
-                <Route
-                    path="/profile"
-                    element={
-                        <ProtectedRoute>
-                            <UserProfilePage/>
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/reservations"
-                    element={
-                        <ProtectedRoute>
-                            <ReservationPage/>
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/loans"
-                    element={
-                        <ProtectedRoute>
-                            <LoanPage/>
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/library"
-                    element={
-                        <ProtectedRoute>
-                            <MyLibraryPage/>
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/home-l"
-                    element={
-                        <ProtectedRoute>
-                            <HomeLibPage/>
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/home-a"
-                    element={
-                        <ProtectedRoute>
-                            <HomeAdminPage/>
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/home-u"
-                    element={
-                        <ProtectedRoute>
-                            <HomeUserPage/>
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/books"
-                    element={
-                        <ProtectedRoute>
-                            <BookPage/>
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/users"
-                    element={
-                        <ProtectedRoute>
-                            <ManageUsersPage/>
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/users/library/:libraryId"
-                    element={
-                        <ProtectedRoute>
-                            <ManageLibrariansPage/>
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/manage-resources"
-                    element={
-                        <ProtectedRoute>
-                            <ManageResourcesPage/>
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/manage-resources/:libraryId"
-                    element={
-                        <ProtectedRoute>
-                            <ManageResourcesPage/>
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/book/:bookId"
-                    element={
-                        <ProtectedRoute>
-                            <BookDetailPage/>
-                        </ProtectedRoute>
-                    }
-                />
+                <Route path="/profile" element={<UserProfilePage/>}/>
+                <Route path="/reservations" element={<ReservationPage/>}/>
+                <Route path="/loans" element={<LoanPage/>}/>
+                <Route path="/library" element={<MyLibraryPage/>}/>
+                <Route path="/home-l" element={<HomeLibPage/>}/>
+                <Route path="/home-a" element={<HomeAdminPage/>}/>
+                <Route path="/home-u" element={<HomeUserPage/>}/>
+                <Route path="/books" element={<BookPage/>}/>
+                <Route path="/users" element={<ManageUsersPage/>}/>
+                <Route path="/users/library/:libraryId" element={<ManageLibrariansPage/>}/>
+                <Route path="/manage-resources" element={<ManageResourcesPage/>}/>
+                <Route path="/manage-resources/:libraryId" element={<ManageResourcesPage/>}/>
+                <Route path="/book/:bookId" element={<BookDetailPage/>}/>
             </Routes>
         </Router>
     );

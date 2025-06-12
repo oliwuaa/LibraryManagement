@@ -113,8 +113,6 @@ public class BookController {
             @PathVariable Long bookId
     ) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        System.out.println("Authenticated User: " + authentication.getName());
-        System.out.println("User Roles: " + authentication.getAuthorities());
         bookService.deleteBook(bookId);
         return ResponseEntity.ok("Book deleted successfully");
     }

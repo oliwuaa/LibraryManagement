@@ -1,6 +1,5 @@
 package com.example.library.service;
 
-import com.example.library.dto.BookDTO;
 import com.example.library.exception.BadRequestException;
 import com.example.library.exception.NotFoundException;
 import com.example.library.specification.BookSpecification;
@@ -9,7 +8,6 @@ import com.example.library.repository.BookRepository;
 import com.example.library.repository.CopyRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;

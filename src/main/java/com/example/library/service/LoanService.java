@@ -158,10 +158,14 @@ public class LoanService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User with ID " + userId + " does not exist"));
 
+        if (!user.isActive()) {
+            throw new BadRequestException("User is not active.");
+        }
+
         Copy copy = copyRepository.findById(copyId)
                 .orElseThrow(() -> new NotFoundException("Copy with ID " + copyId + " does not exist"));
 
-        boolean hasReservation = reservationRepository.existsReservationByCopy_IdAndAndUser_IdAndStatus(copyId, userId, ReservationStatus.WAITING);
+        boolean hasReservation = reservationRepository.existsReservationByCopy_IdAndUser_IdAndStatus(copyId, userId, ReservationStatus.WAITING);
 
         if (copy.getStatus() != CopyStatus.AVAILABLE && !hasReservation) {
             throw new BadRequestException("This copy isn't available");

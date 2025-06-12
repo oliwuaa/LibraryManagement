@@ -13,9 +13,10 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     List<Reservation> findAllByUserId(Long userId);
     List<Reservation> findAllByExpirationDateBeforeAndStatus(LocalDate date, ReservationStatus status);
     Optional<Reservation> findByCopy_IdAndStatus(Long copyId, ReservationStatus status);
-    boolean existsReservationByCopy_IdAndAndUser_IdAndStatus(Long copyId, Long userID, ReservationStatus status);
+    boolean existsReservationByCopy_IdAndUser_IdAndStatus(Long copyId, Long userID, ReservationStatus status);
     boolean existsReservationByCopy_Id(Long copyId);
     List<Reservation> findByExpirationDate(LocalDate date);
     Optional<Reservation> findReservationByCopy_Id(Long copyId);
     List<Reservation> findByCopyLibraryId(Long libraryId);
+    boolean existsByUserIdAndStatus(Long userId, ReservationStatus status);
 }

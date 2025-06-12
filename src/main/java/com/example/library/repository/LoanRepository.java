@@ -2,6 +2,7 @@ package com.example.library.repository;
 
 import com.example.library.model.Loan;
 import com.example.library.model.Reservation;
+import com.example.library.model.ReservationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;
@@ -17,4 +18,5 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
     Optional<Loan> findByIdAndReturnDateIsNull(Long loanId);
     List<Loan> findByEndDateBeforeAndReturnDateIsNull(LocalDate dueDate);
     List<Loan> findByCopy_Library_Id(Long libraryId);
+    boolean existsByUserIdAndReturnDateIsNull(Long userId);
 }
