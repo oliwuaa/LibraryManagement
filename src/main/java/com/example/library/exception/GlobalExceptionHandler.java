@@ -10,6 +10,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -17,6 +19,8 @@ import java.util.Map;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<Map<String, String>> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
@@ -33,6 +37,7 @@ public class GlobalExceptionHandler {
             message += ". Allowed values: " + String.join(", ", enumValues);
         }
 
+        logger.error(message);
         return ResponseEntity
                 .badRequest()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -54,6 +59,7 @@ public class GlobalExceptionHandler {
                 String message = "Invalid value '" + invalidValue + "' for parameter. Expected type: "
                         + targetType.getSimpleName() + ". Allowed values: " + String.join(", ", enumValues);
 
+                logger.error(message);
                 return ResponseEntity
                         .badRequest()
                         .contentType(MediaType.APPLICATION_JSON)
@@ -61,14 +67,17 @@ public class GlobalExceptionHandler {
             }
         }
 
+        String message = "Malformed JSON or invalid enum value. Please check the request body format.";
+        logger.error(message);
         return ResponseEntity
                 .badRequest()
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(Map.of("error", "Malformed JSON or invalid enum value. Please check the request body format."));
+                .body(Map.of("error", message));
     }
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<Map<String, String>> handleNotFound(NotFoundException ex) {
+        logger.error("Not Found: {}", ex.getMessage());
         return ResponseEntity
                 .status(404)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -77,6 +86,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<Map<String, String>> handleBadRequest(BadRequestException ex) {
+        logger.error("Bad Request: {}", ex.getMessage());
         return ResponseEntity
                 .status(400)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -89,11 +99,14 @@ public class GlobalExceptionHandler {
         ex.getBindingResult().getFieldErrors().forEach(error ->
                 errors.put(error.getField(), error.getDefaultMessage())
         );
+        logger.error("Validation errors: {}", errors);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<String> handleConstraintViolationException(ConstraintViolationException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Validation error: " + ex.getMessage());
+        String message = "Validation error: " + ex.getMessage();
+        logger.error(message);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
     }
 }
