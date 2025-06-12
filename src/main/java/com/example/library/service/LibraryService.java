@@ -50,7 +50,6 @@ public class LibraryService {
     }
 
 
-
     public List<Library> searchLibraries(String name, String address) {
         Specification<Library> spec = Specification.where(null);
 

@@ -80,7 +80,7 @@ public class LoanServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(copyRepository.findById(copyId)).thenReturn(Optional.of(copy));
-        when(reservationRepository.existsReservationByCopy_IdAndAndUser_IdAndStatus(copyId, userId, ReservationStatus.WAITING)).thenReturn(true);
+        when(reservationRepository.existsReservationByCopy_IdAndUser_IdAndStatus(copyId, userId, ReservationStatus.WAITING)).thenReturn(true);
 
         loanService.borrowBook(userId, copyId);
         ArgumentCaptor<Loan> captor = ArgumentCaptor.forClass(Loan.class);
@@ -111,7 +111,7 @@ public class LoanServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(copyRepository.findById(copyId)).thenReturn(Optional.of(copy));
-        when(reservationRepository.existsReservationByCopy_IdAndAndUser_IdAndStatus(copyId, userId, ReservationStatus.WAITING)).thenReturn(false);
+        when(reservationRepository.existsReservationByCopy_IdAndUser_IdAndStatus(copyId, userId, ReservationStatus.WAITING)).thenReturn(false);
 
         assertThrows(BadRequestException.class, () ->  loanService.borrowBook(userId, copyId));
         verifyNoInteractions(loanRepository);
@@ -127,7 +127,7 @@ public class LoanServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(copyRepository.findById(copyId)).thenReturn(Optional.of(copy));
-        when(reservationRepository.existsReservationByCopy_IdAndAndUser_IdAndStatus(copyId, userId, ReservationStatus.WAITING)).thenReturn(false);
+        when(reservationRepository.existsReservationByCopy_IdAndUser_IdAndStatus(copyId, userId, ReservationStatus.WAITING)).thenReturn(false);
 
         loanService.borrowBook(userId, copyId);
         ArgumentCaptor<Loan> captor = ArgumentCaptor.forClass(Loan.class);

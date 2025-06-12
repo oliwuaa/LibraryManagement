@@ -28,6 +28,30 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
 
+    @Operation(summary = "Get active users.", description = "Returns a list of all aactive users in the system.")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "List of users returned successfully",
+                    content = @Content(
+                            mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = User.class))
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "No users found",
+                    content = @Content
+            )
+    })
+    @GetMapping("/active")
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    public ResponseEntity<List<UserInfoDTO>> getActiveUsers() {
+        List<UserInfoDTO> users = userService.getActiveUsers();
+        if (users.isEmpty()) return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(users);
+    }
+
     @Operation(summary = "Get all users.", description = "Returns a list of all users in the system.")
     @ApiResponses(value = {
             @ApiResponse(

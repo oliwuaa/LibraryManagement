@@ -16,7 +16,7 @@ export const fetchWithAuth = async (url, options = {}, retry = true) => {
     });
 
     if (response.status === 403 && retry && refreshToken) {
-        const refreshRes = await fetch(`${API_URL}/refresh`, {
+        const refreshRes = await fetch(`${API_URL}/auth/refresh`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ refreshToken }),
@@ -27,7 +27,6 @@ export const fetchWithAuth = async (url, options = {}, retry = true) => {
             localStorage.setItem('accessToken', data.accessToken);
             return fetchWithAuth(url, options, false);
         } else {
-
             return { error: true, status: 403, message: 'Session expired, please log in again.' };
         }
     }

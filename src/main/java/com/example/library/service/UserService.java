@@ -1,6 +1,6 @@
 package com.example.library.service;
 
-import com.example.library.dto.UserDTO;
+import com.example.library.model.ReservationStatus;
 import com.example.library.dto.UserInfoDTO;
 import com.example.library.dto.UserRegistrationDTO;
 import com.example.library.exception.BadRequestException;
@@ -61,6 +61,20 @@ public class UserService {
                 ))
                 .toList();
     }
+
+    public List<UserInfoDTO> getActiveUsers() {
+        return userRepository.findAllByActiveTrue().stream()
+                .map(user -> new UserInfoDTO(
+                        user.getId(),
+                        user.getEmail(),
+                        user.getName(),
+                        user.getSurname(),
+                        user.getRole().name(),
+                        user.getLibrary() != null ? user.getLibrary().getId() : null
+                ))
+                .toList();
+    }
+
 
     public UserInfoDTO getUserById(Long userId) {
         User user = userRepository.findById(userId)
@@ -213,6 +227,13 @@ public class UserService {
             throw new BadRequestException("User already has this role.");
         }
 
+        if (user.getRole() == UserRole.ADMIN && role != UserRole.ADMIN) {
+            long adminCount = userRepository.countByRoleAndActiveTrue(UserRole.ADMIN);
+            if (adminCount <= 1) {
+                throw new BadRequestException("Cannot change role. At least one admin must remain.");
+            }
+        }
+
         if (role == UserRole.USER || role == UserRole.ADMIN) {
             user.setRole(role);
             user.setLibrary(null);
@@ -233,6 +254,17 @@ public class UserService {
     public void deleteUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
+
+        if (user.getRole() == UserRole.ADMIN) {
+            long adminCount = userRepository.countByRoleAndActiveTrue(UserRole.ADMIN);
+            if (adminCount <= 1) {
+                throw new BadRequestException("Cannot delete the last admin.");
+            }
+        }
+
+        if (reservationRepository.existsByUserIdAndStatus(userId, ReservationStatus.WAITING) || loanRepository.existsByUserIdAndReturnDateIsNull(userId)) {
+            throw new IllegalStateException("Cannot delete user with active reservations or loans.");
+        }
         user.setActive(false);
         userRepository.save(user);
     }

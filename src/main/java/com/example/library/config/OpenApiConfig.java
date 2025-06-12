@@ -16,7 +16,7 @@ public class OpenApiConfig {
                 .info(new Info()
                         .title("Library System Management")
                         .version("1.0.0")
-                        .description("Swagger for JWT and OAuth2 Auth"))
+                        .description("Swagger for JWT"))
                 .components(new Components()
                         .addSecuritySchemes("bearer-key",
                                 new SecurityScheme()
