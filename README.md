@@ -124,3 +124,37 @@ Po uruchomieniu aplikacji, dokumentacja Swaggera dostępna jest pod adresem:
 | POST   | `/loans/borrow`     | Wypożycza egzemplarz         |
 | POST   | `/reservations`     | Tworzy rezerwację            |
 
+---
+
+## Screenshots
+
+📸 Screenshots
+
+<details>
+  <summary>Kliknij, aby zobaczyć interfejs aplikacji</summary>
+
+  ### Panel Admina
+  ![Dashboard Admin](https://github.com/oliwuaa/LibraryManagement/blob/docker-setup-login/docs/images/profile_admin.png)
+
+  ### Panel Bibliotekarza
+  ![Dashboard Librarian](https://github.com/oliwuaa/LibraryManagement/blob/docker-setup-login/docs/images/profile_librarian.png)
+
+  ### Panel Użytkownika
+  ![Dashboard User](https://github.com/oliwuaa/LibraryManagement/blob/docker-setup-login/docs/images/profile_user.png)
+
+  ### Katalog Książek
+  ![Book Catalog](https://github.com/oliwuaa/LibraryManagement/blob/docker-setup-login/docs/images/book_catalog.png)
+
+  ### Detale Książki
+  ![Book Details](https://github.com/oliwuaa/LibraryManagement/blob/docker-setup-login/docs/images/book_details.png)
+
+  ### Rezerwacje (Widok Bibliotekarza)
+  ![Reservations](https://github.com/oliwuaa/LibraryManagement/blob/docker-setup-login/docs/images/reservations.png)
+
+  ### Wypożyczenia (Widok Bibliotekarza)
+  ![Loans](https://github.com/oliwuaa/LibraryManagement/blob/docker-setup-login/docs/images/loans.png)
+
+  ### Zarządzanie użytkownikami (Widok Admina)
+  ![User Management](https://github.com/oliwuaa/LibraryManagement/blob/docker-setup-login/docs/images/user_management.png)
+
+</details>
