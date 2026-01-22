@@ -3,7 +3,7 @@ WORKDIR /app
 COPY . .
 RUN gradle build --no-daemon
 
-FROM openjdk:21-jdk
+FROM eclipse-temurin:21-jdk
 WORKDIR /app
 
 RUN mkdir -p /app/logs
