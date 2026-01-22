@@ -7,6 +7,7 @@ import com.example.library.model.*;
 import com.example.library.repository.CopyRepository;
 import com.example.library.repository.ReservationRepository;
 import com.example.library.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.Authentication;
@@ -161,6 +162,7 @@ public class ReservationService {
         notificationService.sendAcceptedReservationNotification(reservation.getUser().getEmail(), reservation);
     }
 
+    @Transactional
     public void cancelReservation(Long reservationId) {
         Reservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new NotFoundException("Reservation with ID " + reservationId + " does not exist"));

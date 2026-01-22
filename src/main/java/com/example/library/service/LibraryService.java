@@ -91,6 +91,7 @@ public class LibraryService {
                 });
     }
 
+    @Transactional
     public boolean deleteLibrary(Long libraryId) {
         Library library = libraryRepository.findById(libraryId)
                 .orElseThrow(() -> new NotFoundException("Library with ID " + libraryId + " doesn't exist."));
